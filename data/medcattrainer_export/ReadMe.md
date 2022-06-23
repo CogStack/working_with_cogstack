@@ -1,3 +1,6 @@
-Place all MedCAT annotated docs should be place here.
+# Placeholder for MedCATtrainer exports
+
+All materials exported from medcattrainer should be stored here.
+
 
 MedCATtrainer exports should be placed [here](data/medcattrainer_exports)
