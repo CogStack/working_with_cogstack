@@ -1,0 +1,8 @@
+# Ignore all credential files
+credentials.py
+
+# Ignore ipynotebook checkpoints
+.ipynb_checkpoints
+
+# Ignore
+.idea/
