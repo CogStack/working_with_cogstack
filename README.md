@@ -6,9 +6,13 @@
                                                                                                            
 
 # Working with CogStack
-This repository contains all tools relevant to interacting with an NHS deployment of CogStack.
+This repository contains all tools relevant to interacting with an NHS deployment of CogStack. 
 
-It contains easy to follow templates and instructions to interact and search CogStack.
+It contains:
+1)  Easy to follow templates and instructions to interact and search CogStack.
+2)  Recommended workflow to create, train, and run, MedCAT models. 
+
+For further discussions or questions. Please join our official [CogStack/MedCAT forum!](https://discourse.cogstack.org/)
 
 __NOTE__ this section is currently in development. Let me know if there is anything 
 else to add!
