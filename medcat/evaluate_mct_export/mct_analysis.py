@@ -1,25 +1,25 @@
 import json
 import pandas as pd
+import plotly
 import plotly.graph_objects as go
-from medcat.cdb import CDB
 from medcat.cat import CAT
-
 
 class MedcatTrainer_export(object):
     """
     Class to analyse JSON format MedCATtrainer exports
     """
 
-    def __init__(self, mct_export_path, model_pack_path=None):
+    def __init__(self, mct_export_paths, model_pack_path=None):
         """
-        :param mct_export_path: List of paths to MedCATtrainer exports
+        :param mct_export_paths: List of paths to MedCATtrainer exports
         :param model_pack_path: Path to medcat modelpack
         """
 
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
 
-        self.mct_export = self._load_mct_exports(mct_export_path)
+        self.mct_export_paths = mct_export_paths
+        self.mct_export = self._load_mct_exports(mct_export_paths)
         self.project_names = [p['name'] for p in self.mct_export['projects']]
         self.document_names = [doc['name'] for doc in p['documents'] for p in self.mct_exports['projects']]
         self.annotations = []
@@ -68,14 +68,61 @@ class MedcatTrainer_export(object):
         concept_count_df['variations'] = concept_count_df['value'].apply(lambda x: len(x))
         concept_count_df.rename({'id': 'concept_count'}, axis=1, inplace=True)
         concept_count_df = concept_count_df.sort_values(by='concept_count', ascending=False).reset_index(drop=True)
-        concept_count_df['count_variations_ratio'] = round(concept_count_df['concept_count']/concept_count_df['variations'], 3)
+        concept_count_df['count_variations_ratio'] = round(concept_count_df['concept_count'] /
+                                                           concept_count_df['variations'], 3)
         return concept_count_df
 
-    def user_stats(self):
-        concept_output = pd.DataFrame(self.annotations)
+    def user_stats(self, by_user: bool = True):
+        """
+        Summary of user annotation work done
+
+        :param by_user: User Stats grouped by user rather than day
+        :return: DataFrame of user annotation work done
+        """
+        df = pd.DataFrame(self.annotations)[['user', 'last_modified']]
+        data = df.groupby([df['last_modified'].dt.year.rename('year'),
+                           df['last_modified'].dt.month.rename('month'),
+                           df['last_modified'].dt.day.rename('day'),
+                           df['user']]).agg({'count'})
+        data = pd.DataFrame(data)
+        data.columns = data.columns.drop_level()
+        data = data.reset_index(drop=False)
+        data['date'] = pd.to_datetime(data[['year', 'month', 'day']])
+        if by_user:
+            data = data[['user', 'count']].groupby(by='user').agg(sum)
+            data = data.reset_index(drop=False).sort_values(by='count', ascending=False).reset_index(drop=True)
+            return data
+        return data
+
+    def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = False):
+        """
+        Plot annotator user stats against time
+        :param save_fig: Optional parameter to save the plot
+        :param save_fig_filename: path/filename.html, default value is mct export projects names.
+        :return: fig object
+        """
+        data = self.user_stats(by_user=False)
+        total_annotations = data['count'].sum()
+        fig = go.Figure()
+        for user in data['user'].unique():
+            fig.add_trace(
+                go.Bar(x=data[data['user'] == user]['date'], y=data[data['user'] == user]['count'], name=user),
+            )
+        fig.update_layout(title={'text': f'MedCATtrainer Annotator Progress - Total annotations: {total_annotations}'},
+                          legend_title_text='MedCAT Annotator',
+                          barmode='stack')
+        fig.update_xaxes(title_text='Date')
+        fig.update_yaxes(title_text='Annotation Count')
+        if save_fig:
+            if save_fig_filename:
+                filename = save_fig_filename
+            else:
+                filename = '__'.join([proj[:-5] for proj in self.mct_export_paths])+'.html'
+            plotly.offline.plot(fig, filename=filename)
+        return fig
 
 
-
+'''
     def get_all_children(self, terminology, pt2ch):
         """
         Get all children concepts from a specified terminology
@@ -94,6 +141,6 @@ class MedcatTrainer_export(object):
             result.append(current_snomed)
         result = list(set(result))
         return result
-
+'''
 
 
