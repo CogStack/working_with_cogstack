@@ -52,13 +52,21 @@ class MedcatTrainer_export(object):
         mct_proj_exports = {'projects': mct_projects}
         return mct_proj_exports
 
+    def concept_df(self):
+        """
+        DataFrame of all annotations created
+        :return: DataFrame
+        """
+        concept_df = pd.DataFrame(self.annotations)
+        concept_df['last_modified'] = pd.to_datetime(concept_df['last_modified'])
+        return concept_df
+
     def concept_summary(self):
         """
         Summary of only correctly annotated concepts from a mct export
         :return: DataFrame summary of annotations.
         """
-        concept_output = pd.DataFrame(self.annotations)
-        concept_output['last_modified'] = pd.to_datetime(concept_output['last_modified'])
+        concept_output = self.concept_df()
         concept_output = concept_output[concept_output['validated'] == True]
         concept_output = concept_output[(concept_output['correct'] == True) | (concept_output['alternative'] == True)]
         if self.cat:
@@ -81,7 +89,7 @@ class MedcatTrainer_export(object):
         :param by_user: User Stats grouped by user rather than day
         :return: DataFrame of user annotation work done
         """
-        df = pd.DataFrame(self.annotations)[['user', 'last_modified']]
+        df = self.concept_df()[['user', 'last_modified']]
         data = df.groupby([df['last_modified'].dt.year.rename('year'),
                            df['last_modified'].dt.month.rename('month'),
                            df['last_modified'].dt.day.rename('day'),
