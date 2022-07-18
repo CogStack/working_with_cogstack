@@ -11,6 +11,7 @@ warnings.filterwarnings("ignore")
 
 from credentials import *
 
+
 class CogStack(object):
     """
     :param hosts: List of CogStack host names
