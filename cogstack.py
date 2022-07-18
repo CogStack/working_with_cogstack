@@ -4,10 +4,12 @@ import elasticsearch.helpers
 import pandas as pd
 from typing import Dict, List
 from tqdm.notebook import tqdm
+import eland as ed
 
 import warnings
 warnings.filterwarnings("ignore")
 
+from credentials import *
 
 class CogStack(object):
     """
@@ -97,35 +99,11 @@ class CogStack(object):
             df = pd.DataFrame(temp_results)
         return df
     
-""" TODO create autosave function
-# Construct a df
-search_results_filename = 'search_results.csv'  # change output filename
-temp_results = []
-counter = 0
-save_interator = 5000  # saves every x hits
-df_headers = ['_index', '_type', '_id', '_score']
-df_headers.extend(columns)
-
-with open(search_results_filename, 'a') as f_object:
-    writer_object = writer(f_object)
-    writer_object.writerow(df_headers)
-    for hit in search_results:
-        if counter % save_interator == 0:
-            writer_object.writerows(temp_results)
-            temp_results = []
-            print(f'Saved {save_interator} docs')
-        row = {}
-        row['_index'] = hit['_index']
-        row['_type'] = hit['_type']
-        row['_id'] = hit['_id']
-        row['_score'] = hit['_score']
-        row.update(hit['_source'])
-        temp_results.append(row.values())
-        counter += 1
-        
-    writer_object.writerows(temp_results)
-    temp_results = []
-    f_object.close()
-"""
-
+    def DataFrame(self, index: str):
+        """
+        Fast method to return a pandas dataframe from a CogStack search.
+        :param index: List of indices
+        :return: A dataframe object
+        """
+        return ed.DataFrame(es_client=self.elastic, es_index_pattern=index)
 
