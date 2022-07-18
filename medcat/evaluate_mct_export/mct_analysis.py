@@ -21,11 +21,13 @@ class MedcatTrainer_export(object):
 
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(mct_export_paths)
-        self.project_names = [p['name'] for p in self.mct_export['projects']]
-        self.document_names = [doc['name'] for doc in p['documents'] for p in self.mct_exports['projects']]
+        self.project_names = []
+        self.document_names = []
         self.annotations = []
-        for proj in self.mct_exports['projects']:
+        for proj in self.mct_export['projects']:
+            self.project_names.append(proj)
             for doc in proj['documents']:
+                self.document_names.append(doc['name'])
                 for anns in doc['annotations']:
                     output = dict()
                     output['project'] = proj['name']
