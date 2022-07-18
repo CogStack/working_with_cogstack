@@ -4,9 +4,10 @@ import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
 
+
 class MedcatTrainer_export(object):
     """
-    Class to analyse JSON format MedCATtrainer exports
+    Class to analyse MedCATtrainer exports
     """
 
     def __init__(self, mct_export_paths, model_pack_path=None):
