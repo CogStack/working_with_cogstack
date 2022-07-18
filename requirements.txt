@@ -56,7 +56,7 @@ jupyterlab-server==2.14.0
 jupyterlab-widgets==1.1.1
 MarkupSafe==2.1.1
 matplotlib-inline==0.1.3
-medcat==1.2.8
+# medcat==1.2.8 Edit out so build doesnt fail
 mistune==0.8.4
 monotonic==1.6
 multidict==6.0.2
