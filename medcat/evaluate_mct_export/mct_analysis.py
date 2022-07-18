@@ -15,10 +15,9 @@ class MedcatTrainer_export(object):
         :param mct_export_paths: List of paths to MedCATtrainer exports
         :param model_pack_path: Path to medcat modelpack
         """
-
+        self.cat = None
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
-
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(mct_export_paths)
         self.project_names = []
