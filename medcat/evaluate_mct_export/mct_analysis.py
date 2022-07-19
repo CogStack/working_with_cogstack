@@ -106,7 +106,8 @@ class MedcatTrainer_export(object):
 
     def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = False):
         """
-        Plot annotator user stats against time
+        Plot annotator user stats against time.
+        An alternative method of saving the file is: plot_user_stats().write_image("path/filename.png")
         :param save_fig: Optional parameter to save the plot
         :param save_fig_filename: path/filename.html, default value is mct export projects names.
         :return: fig object
@@ -127,8 +128,7 @@ class MedcatTrainer_export(object):
             if save_fig_filename:
                 filename = save_fig_filename
             else:
-                filename = '__'.join([proj[:-5] for proj in self.mct_export_paths])+'.html'
-
+                filename = input("Please enter the export path/filename with no ext: ") + '.html'
             plotly.offline.plot(fig, filename=filename)
             print(f'The figure was saved at: {filename}')
         return fig
