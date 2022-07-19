@@ -128,7 +128,9 @@ class MedcatTrainer_export(object):
                 filename = save_fig_filename
             else:
                 filename = '__'.join([proj[:-5] for proj in self.mct_export_paths])+'.html'
+
             plotly.offline.plot(fig, filename=filename)
+            print(f'The figure was saved at: {filename}')
         return fig
 
 
