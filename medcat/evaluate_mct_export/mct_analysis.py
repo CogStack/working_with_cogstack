@@ -102,7 +102,7 @@ class MedcatTrainer_export(object):
             data = data[['user', 'count']].groupby(by='user').agg(sum)
             data = data.reset_index(drop=False).sort_values(by='count', ascending=False).reset_index(drop=True)
             return data
-        return data
+        return data[['user', 'count', 'date']]
 
     def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = False):
         """
