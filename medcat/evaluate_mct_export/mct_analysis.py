@@ -61,7 +61,7 @@ class MedcatTrainer_export(object):
         annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified'])
         return annotation_df
 
-    def concept_summary(self):
+    def concept_summary(self, extra_cui_filter=None):
         """
         Summary of only correctly annotated concepts from a mct export
         :return: DataFrame summary of annotations.
@@ -80,6 +80,23 @@ class MedcatTrainer_export(object):
         concept_count_df = concept_count_df.sort_values(by='concept_count', ascending=False).reset_index(drop=True)
         concept_count_df['count_variations_ratio'] = round(concept_count_df['concept_count'] /
                                                            concept_count_df['variations'], 3)
+        if self.cat:
+            fps,fns,tps,cui_prec,cui_rec,cui_f1,cui_counts,examples = self.cat._print_stats(data=self.mct_export,
+                                                                                            use_project_filters=True,
+                                                                                            extra_cui_filter=extra_cui_filter)
+            concept_count_df['fps'] = concept_count_df['cui'].map(fps)
+            concept_count_df['fns'] = concept_count_df['cui'].map(fns)
+            concept_count_df['tps'] = concept_count_df['cui'].map(tps)
+            concept_count_df['cui_prec'] = concept_count_df['cui'].map(cui_prec)
+            concept_count_df['cui_rec'] = concept_count_df['cui'].map(cui_rec)
+            concept_count_df['cui_f1'] = concept_count_df['cui'].map(cui_f1)
+            concept_count_df['cui_counts'] = concept_count_df['cui'].map(cui_counts)
+            examples_df = pd.DataFrame(examples).rename_axis('cui').reset_index(drop=False).\
+                rename(columns={'fp': 'fp_examples',
+                                'fn': 'fn_examples',
+                                'tp': 'tp_examples'})
+            concept_count_df = concept_count_df.merge(examples_df, how='left', on='cui')
+            
         return concept_count_df
 
     def user_stats(self, by_user: bool = True):
@@ -132,6 +149,7 @@ class MedcatTrainer_export(object):
             plotly.offline.plot(fig, filename=filename)
             print(f'The figure was saved at: {filename}')
         return fig
+        
 
 
 '''
