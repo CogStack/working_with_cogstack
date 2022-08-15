@@ -38,4 +38,28 @@ Run model on your corpus of documents and write to csv/sql db.
 Instructions on how to do this can be found within [run_model](medcat/3_run_model/run_model.ipynb)
 
 
+## General guidance on how to run an NER annotation project
+
+1. Establish your Aims, Hypothesis and Scope.
+
+2. Define your cohort/dataset. How will you identify your cohort and relevant documents?
+
+3. Select a standardised clinical terminology and version most suitable fit your use case.
+
+4. Select an existing model or create your own.
+
+5. Produce annotation guidelines. Create a “gold standard”. Manually label you’re a sample of your dataset through annotations. This sample must be as representative as possible to ensure optimal model performance. 
+
+6. Train and compare the model to your “gold standard”. These annotations can be used for supervised training or benchmarking model performance.
+
+7. Calculate performance metrics against the annotation sample.
+
+8. Run over your entire data set.
+
+9. Random stratified subsample review of performance.
+
+10. (Optional generalisability) Test model at an external site/dataset validation of steps 8,9. 
+
+
+
 
