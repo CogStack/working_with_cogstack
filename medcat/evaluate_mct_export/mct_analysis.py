@@ -58,7 +58,7 @@ class MedcatTrainer_export(object):
         :return: DataFrame
         """
         annotation_df = pd.DataFrame(self.annotations)
-        annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified'])
+        annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified']).dt.tz_localize(None)
         return annotation_df
 
     def concept_summary(self, extra_cui_filter=None):
@@ -150,6 +150,16 @@ class MedcatTrainer_export(object):
             print(f'The figure was saved at: {filename}')
         return fig
         
+    def generate_report(self, path: str='mct_report.xlsx'):
+        with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+            df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
+            #df.columns = {0:"MedCAT Model card"}
+            df.to_excel(writer, index=False, sheet_name='medcat_model_card')
+            self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
+            #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
+            self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+            self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
+        return print(f"MCT report save to: {path}")
 
 
 '''
