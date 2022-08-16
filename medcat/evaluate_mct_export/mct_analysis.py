@@ -64,6 +64,8 @@ class MedcatTrainer_export(object):
         :return: DataFrame
         """
         annotation_df = pd.DataFrame(self.annotations)
+        if self.cat:
+            annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(self.cat.cdb.cui2preferred_name))
         annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified']).dt.tz_localize(None)
         return annotation_df
 
@@ -76,7 +78,6 @@ class MedcatTrainer_export(object):
         concept_output = concept_output[concept_output['validated'] == True]
         concept_output = concept_output[(concept_output['correct'] == True) | (concept_output['alternative'] == True)]
         if self.cat:
-            concept_output.insert(5, 'concept_name', concept_output['cui'].map(self.cat.cdb.cui2preferred_name))
             concept_count = concept_output.groupby(['concept_name', 'cui']).agg({'value': set, 'id': 'count'})
         else:
             concept_count = concept_output.groupby(['cui']).agg({'value': set, 'id': 'count'})
