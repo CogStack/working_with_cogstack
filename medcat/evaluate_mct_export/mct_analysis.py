@@ -78,7 +78,7 @@ class MedcatTrainer_export(object):
         concept_output = concept_output[concept_output['validated'] == True]
         concept_output = concept_output[(concept_output['correct'] == True) | (concept_output['alternative'] == True)]
         if self.cat:
-            concept_count = concept_output.groupby(['concept_name', 'cui']).agg({'value': set, 'id': 'count'})
+            concept_count = concept_output.groupby(['cui','concept_name']).agg({'value': set, 'id': 'count'})
         else:
             concept_count = concept_output.groupby(['cui']).agg({'value': set, 'id': 'count'})
         concept_count_df = pd.DataFrame(concept_count).reset_index(drop=False)
