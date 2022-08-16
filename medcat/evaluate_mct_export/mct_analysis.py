@@ -20,26 +20,30 @@ class MedcatTrainer_export(object):
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
-        self.mct_export = self._load_mct_exports(mct_export_paths)
+        self.mct_export = self._load_mct_exports(self.mct_export_paths)
         self._mct_export = deepcopy(self.mct_export)
         self.project_names = []
         self.document_names = []
-        self.annotations = []
+        self.annotations = self._annotations()
+        
+    def _annotations(self):
+        ann_lst=[]
         for proj in self._mct_export['projects']:
             self.project_names.append(proj)
             for doc in proj['documents']:
                 self.document_names.append(doc['name'])
                 for anns in doc['annotations']:
-                    output = dict()
-                    output['project'] = proj['name']
-                    output['document_name'] = doc['name']
                     meta_anns_dict = dict()
                     for meta_ann in anns['meta_anns'].items():
                         meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
                     anns.pop('meta_anns')
+                    output = dict()
+                    output['project'] = proj['name']
+                    output['document_name'] = doc['name']
                     output.update(anns)
                     output.update(meta_anns_dict)
-                    self.annotations.append(output)
+                    ann_lst.append(output)
+        return ann_lst
 
     def _load_mct_exports(self, list_of_paths_to_mct_exports):
         """
@@ -181,7 +185,7 @@ class MedcatTrainer_export(object):
                                                 anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
                             except KeyError:
                                 pass
-        return self.mct_export
+        return
 
 
 '''
