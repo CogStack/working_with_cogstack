@@ -186,6 +186,8 @@ class MedcatTrainer_export(object):
                                                 anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
                             except KeyError:
                                 pass
+        self._mct_export = deepcopy(self.mct_export)
+        self.annotations = self._annotations()
         return
 
 
