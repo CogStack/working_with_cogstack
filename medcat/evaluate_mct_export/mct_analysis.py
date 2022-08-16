@@ -3,6 +3,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
+from copy import deepcopy
 
 
 class MedcatTrainer_export(object):
@@ -20,10 +21,11 @@ class MedcatTrainer_export(object):
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(mct_export_paths)
+        self._mct_export = deepcopy(self.mct_export)
         self.project_names = []
         self.document_names = []
         self.annotations = []
-        for proj in self.mct_export['projects']:
+        for proj in self._mct_export['projects']:
             self.project_names.append(proj)
             for doc in proj['documents']:
                 self.document_names.append(doc['name'])
@@ -160,6 +162,26 @@ class MedcatTrainer_export(object):
             self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
             self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
         return print(f"MCT report save to: {path}")
+    
+    def rename_meta_anns(self,
+                        meta_anns2rename=dict(),
+                        meta_ann_values2rename=dict()):
+        for proj in self.mct_export['projects']:
+            for doc in proj['documents']:
+                for anns in doc['annotations']:
+                    if len(anns['meta_anns'])>0:
+                        for meta_name2replace in meta_anns2rename:
+                            try:
+                                anns['meta_anns'][meta_anns2rename[meta_name2replace]] = anns['meta_anns'].pop(meta_name2replace)
+                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] = meta_anns2rename[meta_name2replace]
+                                for meta_ann_name, meta_values in meta_ann_values2rename.items():
+                                    if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] == meta_ann_name:
+                                        for value in meta_values:
+                                            if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] == value:
+                                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
+                            except KeyError:
+                                pass
+        return self.mct_export
 
 
 '''
