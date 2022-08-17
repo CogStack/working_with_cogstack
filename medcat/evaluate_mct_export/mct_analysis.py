@@ -160,7 +160,7 @@ class MedcatTrainer_export(object):
     def generate_report(self, path: str='mct_report.xlsx'):
         with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
             df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
-            #df.columns = {0:"MedCAT Model card"}
+            df.loc[-1] = ["MedCAT Model card"]
             df.to_excel(writer, index=False, sheet_name='medcat_model_card')
             self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
             #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
