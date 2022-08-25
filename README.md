@@ -17,14 +17,6 @@ For further discussions or questions. Please join our official [CogStack/MedCAT 
 __NOTE__ this section is currently in development. Let me know if there is anything 
 else to add!
 
-Tasks left TODO:
-- [x] CogStack Search
-- [ ] CogStack Watcher Jobs
-- [x] MedCAT creating a model
-- [x] MedCAT unsupervised training a model
-- [x] MedCAT supervised training a model
-- [x] MedCAT annotating free text
-
 
 ## Setup
 
