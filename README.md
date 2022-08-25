@@ -52,7 +52,7 @@ __Linux/MAC OS__
 2. Load the virtual environment: `source venv/bin/activate`
 3. Install relevant packages and libraries: `pip install -r requirements.txt`
 
-Optional: If no jupyter instance is installed.
+*Optional: If no jupyter instance is installed.*
 1. In the main folder of this repository. Activate your virtual environment, using the (Step 2) command from your respective OS. 
 2. Start JupyterLab: `jupyter-lab`
 
