@@ -30,7 +30,7 @@ Please replace anything within `<Enter information here>` with your own specific
 
 1. Enter the directory where you would like to store these files. `cd path/to/where/you/want/this/repository`
 
-2. Clone the online repository: `git clone https://github.com/antsh3k/working_with_cogstack.git`
+2. Clone the online repository: `git clone https://github.com/CogStack/working_with_cogstack.git`
     
     Further instructions and self-help with git and git clone. Please visit this [link.](https://github.com/git-guides/git-clone)
     
