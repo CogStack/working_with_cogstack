@@ -171,6 +171,12 @@ class MedcatTrainer_export(object):
     def rename_meta_anns(self,
                         meta_anns2rename=dict(),
                         meta_ann_values2rename=dict()):
+        """
+
+        :param meta_anns2rename:
+        :param meta_ann_values2rename:
+        :return:
+        """
         for proj in self.mct_export['projects']:
             for doc in proj['documents']:
                 for anns in doc['annotations']:
@@ -186,7 +192,6 @@ class MedcatTrainer_export(object):
                                                 anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
                             except KeyError:
                                 pass
-        self._mct_export = deepcopy(self.mct_export)
         self.annotations = self._annotations()
         return
 
