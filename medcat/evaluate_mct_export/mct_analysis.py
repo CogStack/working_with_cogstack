@@ -3,6 +3,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
+from datetime import date
 
 import json
 import torch
@@ -306,15 +307,17 @@ class MedcatTrainer_export(object):
 
         return meta_df
 
-    def generate_report(self, path: str='mct_report.xlsx', meta_ann = False):
+    def generate_report(self, path: str='mct_report.xlsx', meta_ann = False, concept_filter: List = None):
         """
         :param path: Outfile path
         :param meta_ann: Include Meta_annotation evaluation in the summary as well
+        :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
         :return: An full excel report for MedCATtrainer annotation work done.
         """
         with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
             print('Generating report...')
             df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
+            df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
             df.to_excel(writer, index=False, sheet_name='medcat_model_card')
             self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
             #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
