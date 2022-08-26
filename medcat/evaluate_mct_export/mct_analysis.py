@@ -173,8 +173,8 @@ class MedcatTrainer_export(object):
                         meta_ann_values2rename=dict()):
         """
 
-        :param meta_anns2rename:
-        :param meta_ann_values2rename:
+        :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
+        :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
         """
         for proj in self.mct_export['projects']:
