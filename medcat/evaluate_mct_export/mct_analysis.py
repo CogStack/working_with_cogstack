@@ -3,7 +3,24 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
-from copy import deepcopy
+
+import json
+import torch
+import math
+from torch import nn
+import numpy as np
+import pandas as pd
+from collections import Counter
+from typing import List, Optional, Tuple, Any, Dict
+from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
+from sklearn.metrics import classification_report, precision_recall_fscore_support
+from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
+
+from medcat.meta_cat import MetaCAT
+from medcat.config_meta_cat import ConfigMetaCAT
+from medcat.utils.meta_cat.data_utils import prepare_from_json, encode_category_values
+import warnings
+
 
 
 class MedcatTrainer_export(object):
@@ -196,7 +213,116 @@ class MedcatTrainer_export(object):
         return
 
 
+#######
+
+    def _eval_model(model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
+        device = torch.device(config.general['device']) # Create a torch device
+        batch_size_eval = config.general['batch_size_eval']
+        pad_id = config.model['padding_idx']
+        ignore_cpos = config.model['ignore_cpos']
+        class_weights = config.train['class_weights']
+
+        if class_weights is not None:
+            class_weights = torch.FloatTensor(class_weights).to(device)
+            criterion = nn.CrossEntropyLoss(weight=class_weights) # Set the criterion to Cross Entropy Loss
+        else:
+            criterion = nn.CrossEntropyLoss() # Set the criterion to Cross Entropy Loss
+
+        y_eval = [x[2] for x in data]
+        num_batches = math.ceil(len(data) / batch_size_eval)
+        running_loss = []
+        all_logits = []
+        model.to(device)
+        model.eval()
+
+        with torch.no_grad():
+            for i in range(num_batches):
+                x, cpos, y = create_batch_piped_data(data, i*batch_size_eval, (i+1)*batch_size_eval, device=device, pad_id=pad_id)
+                logits = model(x, cpos, ignore_cpos=ignore_cpos)
+                loss = criterion(logits, y)
+
+                # Track loss and logits
+                running_loss.append(loss.item())
+                all_logits.append(logits.detach().cpu().numpy())
+
+        predictions = np.argmax(np.concatenate(all_logits, axis=0), axis=1)
+        return predictions
+
+    def _eval(metacat_model, mct_export):
+        g_config = metacat_model.config.general
+        t_config = metacat_model.config.train
+        t_config['test_size'] = 0
+        t_config['shuffle_data']= False
+        t_config['prerequisites']={}
+        t_config['cui_filter']={}
+
+        # Prepare the data
+        assert metacat_model.tokenizer is not None
+        data = prepare_from_json(mct_export, g_config['cntx_left'], g_config['cntx_right'], metacat_model.tokenizer,
+                                 cui_filter=t_config['cui_filter'],
+                                 replace_center=g_config['replace_center'], prerequisites=t_config['prerequisites'],
+                                 lowercase=g_config['lowercase'])
+
+        # Check is the name there
+        category_name = g_config['category_name']
+        if category_name not in data:
+            warnings.warn(f"The meta_model {category_name} does not exist in this MedCATtrainer export.", UserWarning)
+            return {category_name:f"{category_name} does not exist"}
+
+        data = data[category_name]
+
+        # We already have everything, just get the data
+        category_value2id = g_config['category_value2id']
+        data, _ = encode_category_values(data, existing_category_value2id=category_value2id)
+        print(_)
+        print(len(data))
+        # Run evaluation
+        assert metacat_model.tokenizer is not None
+        result = _eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
+
+        return {'predictions': result, 'meta_values':_}
+
+    def full_annotation_df(self):
+        """
+        DataFrame of all annotations created including meta_annotation predictions.
+        This function is similar to annotation_df with the addition of Meta_annotation predictions from the medcat model.
+        prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
+        :return: DataFrame
+        """
+        meta_models = list(self.cat.get_model_card(as_dict=True)['MetaCAT models'].keys())
+        anns_df = self.annotation_df()
+        meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False) & (
+                    anns_df['irrelevant'] != True)]
+        meta_df = meta_df.reset_index(drop=True)
+
+        if self.model_pack_path[-4:] == '.zip':
+            self.model_pack_path = self.model_pack_path[:-4]
+
+        for meta_model in meta_models:
+            print(f'Checking metacat model: {meta_model}')
+            _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
+            meta_results = _eval(_meta_model, self.mct_export)
+            _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
+            print(_meta_values)
+            pred_meta_values = []
+            print()
+            counter = 0
+            for meta_value in meta_df[meta_model]:
+                if pd.isnull(meta_value):
+                    pred_meta_values.append(np.nan)
+                else:
+                    pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
+                    counter += 1
+            meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, 'predict_' + meta_model, pred_meta_values)
+
+        return meta_df
+
+
+
+
+
 '''
+
     def get_all_children(self, terminology, pt2ch):
         """
         Get all children concepts from a specified terminology
