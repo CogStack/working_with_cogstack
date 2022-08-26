@@ -308,12 +308,12 @@ class MedcatTrainer_export(object):
         return meta_df
 
     def meta_anns_concept_summary(self):
-        self.full_annotation_df()
+        meta_df = self.full_annotation_df()
         meta_performance = {}
         for cui in meta_df.cui.unique():
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
-            for model in lst_meta_models:
+            for model in self.cat.get_model_card(as_dict=True)['MetaCAT models'].keys():
                 meta_task = model['category_name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
@@ -354,7 +354,7 @@ class MedcatTrainer_export(object):
         meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
         meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
         meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
-        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(mct.cat.cdb.cui2preferred_name))
+        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
         return meta_anns_df
 
     def generate_report(self, path: str='mct_report.xlsx', meta_ann = False, concept_filter: List = None):
