@@ -173,17 +173,6 @@ class MedcatTrainer_export(object):
             plotly.offline.plot(fig, filename=filename)
             print(f'The figure was saved at: {filename}')
         return fig
-        
-    def generate_report(self, path: str='mct_report.xlsx'):
-        with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
-            df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
-            df.loc[-1] = ["MedCAT Model card"]
-            df.to_excel(writer, index=False, sheet_name='medcat_model_card')
-            self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-            #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
-            self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
-            self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
-        return print(f"MCT report save to: {path}")
     
     def rename_meta_anns(self,
                         meta_anns2rename=dict(),
@@ -316,6 +305,21 @@ class MedcatTrainer_export(object):
             meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, 'predict_' + meta_model, pred_meta_values)
 
         return meta_df
+
+    def generate_report(self, path: str='mct_report.xlsx', meta_ann = False):
+        """
+
+        :param path: Outfile path
+        :return: An full excel report for MedCATtrainer annotation work done.
+        """
+        with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+            df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
+            df.to_excel(writer, index=False, sheet_name='medcat_model_card')
+            self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
+            #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
+            self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+            self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
+        return print(f"MCT report save to: {path}")
 
 
 
