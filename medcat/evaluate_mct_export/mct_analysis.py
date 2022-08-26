@@ -1,5 +1,3 @@
-import json
-import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
@@ -14,7 +12,7 @@ import pandas as pd
 from collections import Counter
 from typing import List, Optional, Tuple, Any, Dict
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
-from sklearn.metrics import classification_report, precision_recall_fscore_support
+
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
 
 from medcat.meta_cat import MetaCAT
