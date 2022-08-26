@@ -307,6 +307,56 @@ class MedcatTrainer_export(object):
 
         return meta_df
 
+    def meta_anns_concept_summary(self):
+        self.full_annotation_df()
+        meta_performance = {}
+        for cui in meta_df.cui.unique():
+            temp_meta_df = meta_df[meta_df['cui'] == cui]
+            meta_task_results = {}
+            for model in lst_meta_models:
+                meta_task = model['category_name']
+                list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
+                counter_meta_anns = Counter(list_meta_anns)
+                meta_value_results = {}
+                for meta_value in model['category_value2id'].keys():
+                    total = 0
+                    fp = 0
+                    fn = 0
+                    tp = 0
+                    for meta_value_result, count in counter_meta_anns.items():
+                        if meta_value_result[0] == meta_value:
+                            if meta_value_result[1] == meta_value:
+                                tp += count
+                                total += count
+                            else:
+                                fn += count
+                                total += count
+                        elif meta_value_result[1] == meta_value:
+                            fp += count
+                        else:
+                            pass  # Skips nan values
+                    meta_value_results[(meta_task, meta_value, 'total')] = total
+                    meta_value_results[(meta_task, meta_value, 'fps')] = fp
+                    meta_value_results[(meta_task, meta_value, 'fns')] = fn
+                    meta_value_results[(meta_task, meta_value, 'tps')] = tp
+                    try:
+                        meta_value_results[(meta_task, meta_value, 'f-score')] = tp / (tp + (1 / 2) * (fp + fn))
+                    except ZeroDivisionError:
+                        meta_value_results[(meta_task, meta_value, 'f-score')] = 0
+                meta_task_results.update(meta_value_results)
+            meta_performance[cui] = meta_task_results
+
+        meta_anns_df = pd.DataFrame.from_dict(meta_performance, orient='index')
+        col_lst = []
+        for col in meta_anns_df.columns:
+            if col[2] == 'total':
+                col_lst.append(col)
+        meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
+        meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
+        meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
+        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(mct.cat.cdb.cui2preferred_name))
+        return meta_anns_df
+
     def generate_report(self, path: str='mct_report.xlsx', meta_ann = False, concept_filter: List = None):
         """
         :param path: Outfile path
@@ -314,22 +364,50 @@ class MedcatTrainer_export(object):
         :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
         :return: An full excel report for MedCATtrainer annotation work done.
         """
-        with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
-            print('Generating report...')
-            df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
-            df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
-            df.to_excel(writer, index=False, sheet_name='medcat_model_card')
-            self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-            #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
-            print('Evaluating annotations...')
-            if meta_ann:
-                self.full_annotation_df().to_excel(writer, index=False, sheet_name='annotations')
-            else:
-                self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
-            self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
-            if meta_ann:
-                print('Evaluating meta_annotations...')
-                self.concept_summary().to_excel(writer, index=False, sheet_name='meta_annotations_summary')
+        if concept_filter:
+            with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+                print('Generating report...')
+                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
+                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
+                df = pd.concat([df, pd.DataFrame([['MCT Custom filter', concept_filter]], columns=df.columns)],
+                               ignore_index = True)
+                df.to_excel(writer, index=False, sheet_name='medcat_model_card')
+                self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
+                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
+                print('Evaluating annotations...')
+                if meta_ann:
+                    ann_df = self.full_annotation_df()
+                    ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df.to_excel(writer, index=False, sheet_name='annotations')
+                else:
+                    ann_df = self.annotation_df()
+                    ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df.to_excel(writer, index=False, sheet_name='annotations')
+                performance_summary_df = self.concept_summary()
+                performance_summary_df = performance_summary_df[performance_summary_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                performance_summary_df.to_excel(writer, index=False, sheet_name='concept_summary')
+                if meta_ann:
+                    print('Evaluating meta_annotations...')
+                    meta_anns_df = self.meta_anns_concept_summary()
+                    meta_anns_df = meta_anns_df[meta_anns_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    meta_anns_df.to_excel(writer, index=False, sheet_name='meta_annotations_summary')
+        else:
+            with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+                print('Generating report...')
+                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
+                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
+                df.to_excel(writer, index=False, sheet_name='medcat_model_card')
+                self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
+                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
+                print('Evaluating annotations...')
+                if meta_ann:
+                    self.full_annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+                else:
+                    self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+                self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
+                if meta_ann:
+                    print('Evaluating meta_annotations...')
+                    self.meta_anns_concept_summary().to_excel(writer, index=False, sheet_name='meta_annotations_summary')
 
         return print(f"MCT report save to: {path}")
 
