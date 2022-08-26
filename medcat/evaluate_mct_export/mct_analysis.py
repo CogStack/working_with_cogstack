@@ -21,14 +21,13 @@ class MedcatTrainer_export(object):
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(self.mct_export_paths)
-        self._mct_export = deepcopy(self.mct_export)
         self.project_names = []
         self.document_names = []
         self.annotations = self._annotations()
         
     def _annotations(self):
         ann_lst=[]
-        for proj in self._mct_export['projects']:
+        for proj in self.mct_export['projects']:
             self.project_names.append(proj)
             for doc in proj['documents']:
                 self.document_names.append(doc['name'])
@@ -36,11 +35,12 @@ class MedcatTrainer_export(object):
                     meta_anns_dict = dict()
                     for meta_ann in anns['meta_anns'].items():
                         meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
-                    anns.pop('meta_anns')
+                    _anns = anns.copy()
+                    _anns.pop('meta_anns')
                     output = dict()
                     output['project'] = proj['name']
                     output['document_name'] = doc['name']
-                    output.update(anns)
+                    output.update(_anns)
                     output.update(meta_anns_dict)
                     ann_lst.append(output)
         return ann_lst
