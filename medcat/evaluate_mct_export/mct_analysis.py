@@ -308,17 +308,26 @@ class MedcatTrainer_export(object):
 
     def generate_report(self, path: str='mct_report.xlsx', meta_ann = False):
         """
-
         :param path: Outfile path
+        :param meta_ann: Include Meta_annotation evaluation in the summary as well
         :return: An full excel report for MedCATtrainer annotation work done.
         """
         with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+            print('Generating report...')
             df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
             df.to_excel(writer, index=False, sheet_name='medcat_model_card')
             self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
             #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
-            self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+            print('Evaluating annotations...')
+            if meta_ann:
+                self.full_annotation_df().to_excel(writer, index=False, sheet_name='annotations')
+            else:
+                self.annotation_df().to_excel(writer, index=False, sheet_name='annotations')
             self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
+            if meta_ann:
+                print('Evaluating meta_annotations...')
+                self.concept_summary().to_excel(writer, index=False, sheet_name='meta_annotations_summary')
+
         return print(f"MCT report save to: {path}")
 
 
