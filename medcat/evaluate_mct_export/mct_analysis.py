@@ -40,6 +40,8 @@ class MedcatTrainer_export(object):
         self.project_names = []
         self.document_names = []
         self.annotations = self._annotations()
+        if self.model_pack_path[-4:] == '.zip':
+            self.model_pack_path = self.model_pack_path[:-4]
         
     def _annotations(self):
         ann_lst=[]
@@ -203,7 +205,7 @@ class MedcatTrainer_export(object):
 
 #######
 
-    def _eval_model(model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
+    def _eval_model(self, model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
         device = torch.device(config.general['device']) # Create a torch device
         batch_size_eval = config.general['batch_size_eval']
         pad_id = config.model['padding_idx']
@@ -236,7 +238,7 @@ class MedcatTrainer_export(object):
         predictions = np.argmax(np.concatenate(all_logits, axis=0), axis=1)
         return predictions
 
-    def _eval(metacat_model, mct_export):
+    def _eval(self, metacat_model, mct_export):
         g_config = metacat_model.config.general
         t_config = metacat_model.config.train
         t_config['test_size'] = 0
@@ -266,7 +268,7 @@ class MedcatTrainer_export(object):
         print(len(data))
         # Run evaluation
         assert metacat_model.tokenizer is not None
-        result = _eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
+        result = self._eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
 
         return {'predictions': result, 'meta_values':_}
 
@@ -282,9 +284,6 @@ class MedcatTrainer_export(object):
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False) & (
                     anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
-
-        if self.model_pack_path[-4:] == '.zip':
-            self.model_pack_path = self.model_pack_path[:-4]
 
         for meta_model in meta_models:
             print(f'Checking metacat model: {meta_model}')
