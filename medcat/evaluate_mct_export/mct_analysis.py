@@ -115,7 +115,7 @@ class MedcatTrainer_export(object):
             concept_count_df['cui_prec'] = concept_count_df['cui'].map(cui_prec)
             concept_count_df['cui_rec'] = concept_count_df['cui'].map(cui_rec)
             concept_count_df['cui_f1'] = concept_count_df['cui'].map(cui_f1)
-            concept_count_df['cui_counts'] = concept_count_df['cui'].map(cui_counts)
+            #concept_count_df['cui_counts'] = concept_count_df['cui'].map(cui_counts) # TODO check why cui counts is incorrect
             examples_df = pd.DataFrame(examples).rename_axis('cui').reset_index(drop=False).\
                 rename(columns={'fp': 'fp_examples',
                                 'fn': 'fn_examples',
