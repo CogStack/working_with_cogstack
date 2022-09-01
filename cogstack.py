@@ -87,13 +87,13 @@ class CogStack(object):
         for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved..."):
             row = dict()
             row['_index'] = hit['_index']
-            row['_type'] = hit['_type']
+            #row['_type'] = hit['_type'] #Add '_type', after _index if ES<v8
             row['_id'] = hit['_id']
             row['_score'] = hit['_score']
             row.update(hit['_source'])
             temp_results.append(row)
         if column_headers:
-            df_headers = ['_index', '_type', '_id', '_score']
+            df_headers = ['_index', '_id', '_score']
             df_headers.extend(column_headers)
             df = pd.DataFrame(temp_results, columns=df_headers)
         else:
