@@ -40,10 +40,10 @@ class MedcatTrainer_export(object):
         self.project_names = []
         self.document_names = []
         self.annotations = self._annotations()
-        if model_pack_path[-4:] == '.zip':
-            self.model_pack_path = model_pack_path[:-4]
-        else:
-            self.model_pack_path = model_pack_path
+        self.model_pack_path = model_pack_path
+        if model_pack_path is not None:
+            if model_pack_path[-4:] == '.zip':
+                self.model_pack_path = model_pack_path[:-4]
         
     def _annotations(self):
         ann_lst=[]
