@@ -290,7 +290,7 @@ class MedcatTrainer_export(object):
         for meta_model in meta_models:
             print(f'Checking metacat model: {meta_model}')
             _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
-            meta_results = _eval(_meta_model, self.mct_export)
+            meta_results = self._eval(_meta_model, self.mct_export)
             _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
             print(_meta_values)
             pred_meta_values = []
