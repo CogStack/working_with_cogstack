@@ -388,7 +388,7 @@ class MedcatTrainer_export(object):
                     meta_anns_df = meta_anns_df[meta_anns_df['cui'].isin(concept_filter)].reset_index(drop=True)
                     meta_anns_df.to_excel(writer, index=True, sheet_name='meta_annotations_summary')
         else:
-            with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
                 df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
