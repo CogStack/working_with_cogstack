@@ -305,12 +305,12 @@ class MedcatTrainer_export(object):
         for cui in meta_df.cui.unique():
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
-            for model in self.cat.get_model_card(as_dict=True)['MetaCAT models'].keys():
-                meta_task = model#['category_name']
+            for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+                meta_task = meta_model_card['Category Name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
                 meta_value_results = {}
-                for meta_value in model['category_value2id'].keys():
+                for meta_value in meta_model_card['Classes'].keys():
                     total = 0
                     fp = 0
                     fn = 0
