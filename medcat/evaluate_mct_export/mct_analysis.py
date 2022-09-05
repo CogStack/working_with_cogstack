@@ -46,7 +46,7 @@ class MedcatTrainer_export(object):
                 self.model_pack_path = model_pack_path[:-4]
         
     def _annotations(self):
-        ann_lst=[]
+        ann_lst = []
         for proj in self.mct_export['projects']:
             self.project_names.append(proj)
             for doc in proj['documents']:
@@ -177,11 +177,9 @@ class MedcatTrainer_export(object):
             print(f'The figure was saved at: {filename}')
         return fig
     
-    def rename_meta_anns(self,
-                        meta_anns2rename=dict(),
-                        meta_ann_values2rename=dict()):
+    def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
         """
-
+        TODO: the meta_ann_values2rename has issues
         :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
@@ -189,7 +187,7 @@ class MedcatTrainer_export(object):
         for proj in self.mct_export['projects']:
             for doc in proj['documents']:
                 for anns in doc['annotations']:
-                    if len(anns['meta_anns'])>0:
+                    if len(anns['meta_anns']) > 0:
                         for meta_name2replace in meta_anns2rename:
                             try:
                                 anns['meta_anns'][meta_anns2rename[meta_name2replace]] = anns['meta_anns'].pop(meta_name2replace)
@@ -313,7 +311,7 @@ class MedcatTrainer_export(object):
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
             for model in self.cat.get_model_card(as_dict=True)['MetaCAT models'].keys():
-                meta_task = model['category_name']
+                meta_task = model#['category_name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
                 meta_value_results = {}
