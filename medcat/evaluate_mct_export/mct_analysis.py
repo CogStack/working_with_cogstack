@@ -276,20 +276,18 @@ class MedcatTrainer_export(object):
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
-        meta_models = list(self.cat.get_model_card(as_dict=True)['MetaCAT models'].keys())
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False) & (
                     anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
 
-        for meta_model in meta_models:
+        for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            meta_model = meta_model_card['Category Name']
             print(f'Checking metacat model: {meta_model}')
             _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
             meta_results = self._eval(_meta_model, self.mct_export)
             _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
-            print(_meta_values)
             pred_meta_values = []
-            print()
             counter = 0
             for meta_value in meta_df[meta_model]:
                 if pd.isnull(meta_value):
