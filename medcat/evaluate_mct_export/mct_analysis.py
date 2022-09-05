@@ -224,7 +224,11 @@ class MedcatTrainer_export(object):
 
         with torch.no_grad():
             for i in range(num_batches):
-                x, cpos, y = create_batch_piped_data(data, i*batch_size_eval, (i+1)*batch_size_eval, device=device, pad_id=pad_id)
+                x, cpos, y = create_batch_piped_data(data,
+                                                     i*batch_size_eval,
+                                                     (i+1)*batch_size_eval,
+                                                     device=device,
+                                                     pad_id=pad_id)
                 logits = model(x, cpos, ignore_cpos=ignore_cpos)
                 loss = criterion(logits, y)
 
@@ -277,8 +281,8 @@ class MedcatTrainer_export(object):
         :return: DataFrame
         """
         anns_df = self.annotation_df()
-        meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False) & (
-                    anns_df['irrelevant'] != True)]
+        meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
+                          & (anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
 
         for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
@@ -349,7 +353,7 @@ class MedcatTrainer_export(object):
         meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
         return meta_anns_df
 
-    def generate_report(self, path: str='mct_report.xlsx', meta_ann = False, concept_filter: List = None):
+    def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: List = None):
         """
         :param path: Outfile path
         :param meta_ann: Include Meta_annotation evaluation in the summary as well
@@ -357,7 +361,7 @@ class MedcatTrainer_export(object):
         :return: An full excel report for MedCATtrainer annotation work done.
         """
         if concept_filter:
-            with pd.ExcelWriter(path, engine_kwargs={'options':{'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
                 df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
@@ -376,7 +380,8 @@ class MedcatTrainer_export(object):
                     ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
                     ann_df.to_excel(writer, index=False, sheet_name='annotations')
                 performance_summary_df = self.concept_summary()
-                performance_summary_df = performance_summary_df[performance_summary_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                performance_summary_df = performance_summary_df[performance_summary_df['cui'].isin(concept_filter)]\
+                    .reset_index(drop=True)
                 performance_summary_df.to_excel(writer, index=False, sheet_name='concept_summary')
                 if meta_ann:
                     print('Evaluating meta_annotations...')
@@ -399,9 +404,9 @@ class MedcatTrainer_export(object):
                 self.concept_summary().to_excel(writer, index=False, sheet_name='concept_summary')
                 if meta_ann:
                     print('Evaluating meta_annotations...')
-                    self.meta_anns_concept_summary().to_excel(writer, index=False, sheet_name='meta_annotations_summary')
+                    self.meta_anns_concept_summary().to_excel(writer, index=True, sheet_name='meta_annotations_summary')
 
-        return print(f"MCT report save to: {path}")
+        return print(f"MCT report saved to: {path}")
 
 
 
