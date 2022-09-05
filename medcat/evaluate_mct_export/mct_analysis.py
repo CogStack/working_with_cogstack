@@ -202,11 +202,8 @@ class MedcatTrainer_export(object):
         self.annotations = self._annotations()
         return
 
-
-#######
-
     def _eval_model(self, model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
-        device = torch.device(config.general['device']) # Create a torch device
+        device = torch.device(config.general['device'])  # Create a torch device
         batch_size_eval = config.general['batch_size_eval']
         pad_id = config.model['padding_idx']
         ignore_cpos = config.model['ignore_cpos']
@@ -214,9 +211,9 @@ class MedcatTrainer_export(object):
 
         if class_weights is not None:
             class_weights = torch.FloatTensor(class_weights).to(device)
-            criterion = nn.CrossEntropyLoss(weight=class_weights) # Set the criterion to Cross Entropy Loss
+            criterion = nn.CrossEntropyLoss(weight=class_weights)  # Set the criterion to Cross Entropy Loss
         else:
-            criterion = nn.CrossEntropyLoss() # Set the criterion to Cross Entropy Loss
+            criterion = nn.CrossEntropyLoss()  # Set the criterion to Cross Entropy Loss
 
         y_eval = [x[2] for x in data]
         num_batches = math.ceil(len(data) / batch_size_eval)
@@ -242,9 +239,9 @@ class MedcatTrainer_export(object):
         g_config = metacat_model.config.general
         t_config = metacat_model.config.train
         t_config['test_size'] = 0
-        t_config['shuffle_data']= False
-        t_config['prerequisites']={}
-        t_config['cui_filter']={}
+        t_config['shuffle_data'] = False
+        t_config['prerequisites'] = {}
+        t_config['cui_filter'] = {}
 
         # Prepare the data
         assert metacat_model.tokenizer is not None
@@ -257,7 +254,7 @@ class MedcatTrainer_export(object):
         category_name = g_config['category_name']
         if category_name not in data:
             warnings.warn(f"The meta_model {category_name} does not exist in this MedCATtrainer export.", UserWarning)
-            return {category_name:f"{category_name} does not exist"}
+            return {category_name: f"{category_name} does not exist"}
 
         data = data[category_name]
 
@@ -270,7 +267,7 @@ class MedcatTrainer_export(object):
         assert metacat_model.tokenizer is not None
         result = self._eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
 
-        return {'predictions': result, 'meta_values':_}
+        return {'predictions': result, 'meta_values': _}
 
     def full_annotation_df(self):
         """
