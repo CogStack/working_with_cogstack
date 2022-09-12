@@ -14,7 +14,7 @@ import sys
 
 apikey = ''  # please add apikey
 DOWNLOAD_URL = 'https://download.nlm.nih.gov/umls/kss/2022AA/umls-2022AA-full.zip'  # Change this to service required
-PATH_TO_DOWNLOAD = ''
+PATH_TO_DOWNLOAD = ''  # Default outfile path will be written to current working directory
 
 print(DOWNLOAD_URL)
 value = DOWNLOAD_URL.split('/')
@@ -51,7 +51,6 @@ print(STResponse.text)
 
 url = DOWNLOAD_URL+'?ticket='+STResponse.text
 r = requests.get(url, allow_redirects=True)
-open('2022AA_UMLS_full_current.zip', 'wb').write(r.content)
 
 with open(PATH_TO_DOWNLOAD + value[len(value)-1], 'wb') as f:
     f.write(r.content)
