@@ -58,7 +58,7 @@ E.g.
 
 The following Steps are to services provided by SNOMED International for organizations and individuals to request use and access to the International Release of SNOMED CT for use in non-Member countries
 
-__To access SNOMED CT files from non-member contries:__
+__To access SNOMED CT files from non-member countries:__
 
 1.   Please visit the SNOMED [Member Licensing and Distribution Service.](https://mlds.ihtsdotools.org/#/landing) and read their terms and conditions for use.
 
