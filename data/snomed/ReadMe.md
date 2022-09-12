@@ -4,7 +4,7 @@ Place holder for all SNOMED related content and downloads here
 
 --------
 
-##About
+## About
 SNOMED CT is a standarised clinical terminology consisting of >350,000 unique concepts. It is owned, maintained and distributed by SNOMED International.
 
 Please visit and explore https://www.snomed.org/ to find out further information about the various SNOMED CT products and services which they offer.
