@@ -10,9 +10,15 @@ All scripts to preprocess SNOMED CT release files can be found:
 
     from medcat.utils.preprocess_snomed import Snomed
     
-    snomed = Snomed({path_to_unzipped_snomed}, uk_drug_ext=False)
+    snomed = Snomed({path_to_unzipped_snomed})
     df = snomed.to_concept_df()
 
+SNOMED UK edition or drug extension special releases can be preprocessed via:
+    
+    from medcat.utils.preprocess_snomed import Snomed
+    
+    snomed = Snomed({path_to_unzipped_snomed}, uk_ext=True, uk_drug_ext=False)
+    df = snomed.to_concept_df()
 
 Further information can be found [here](https://github.com/CogStack/MedCAT/blob/master/medcat/utils/preprocess_snomed.py)
 
