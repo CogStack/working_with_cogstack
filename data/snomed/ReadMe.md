@@ -4,6 +4,18 @@ Place holder for all SNOMED related content and downloads here
 
 --------
 
+## MedCAT proprocessing of SNOMED
+
+All scripts to preprocess SNOMED CT release files can be found:
+
+    from medcat.utils.preprocess_snomed import Snomed
+    
+    snomed = Snomed({path_to_unzipped_snomed}, uk_drug_ext=False)
+    df = snomed.to_concept_df()
+
+
+Further information can be found [here](https://github.com/CogStack/MedCAT/blob/master/medcat/utils/preprocess_snomed.py)
+
 ## About
 SNOMED CT is a standarised clinical terminology consisting of >350,000 unique concepts. It is owned, maintained and distributed by SNOMED International.
 
