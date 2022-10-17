@@ -100,11 +100,11 @@ class CogStack(object):
             df = pd.DataFrame(temp_results)
         return df
     
-    def DataFrame(self, index: str):
+    def DataFrame(self, index: str, columns=None):
         """
         Fast method to return a pandas dataframe from a CogStack search.
         :param index: List of indices
         :return: A dataframe object
         """
-        return ed.DataFrame(es_client=self.elastic, es_index_pattern=index)
+        return ed.DataFrame(es_client=self.elastic, es_index_pattern=index, columns=columns)
 
