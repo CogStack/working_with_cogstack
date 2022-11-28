@@ -5,6 +5,8 @@ from medcat.cdb_maker import CDBMaker
 
 pd.options.mode.chained_assignment = None
 
+# this is expected to be output from medcat.utils.preprocess_umls
+# i.e not the raw UMLS files
 csv_path = input("Enter specific UMLS pre-cdb csv found in the path data/umls: ")
 release = '2022AA' # or as appropriate
 
