@@ -117,3 +117,11 @@ purposes only.
 }
 ```
 
+
+# Foresight (Coming soon...)
+Demo is available [here](https://foresight.sites.er.kcl.ac.uk/)
+
+<img src="data/media/foresight_logo_unofficial.png">
+
+
+
