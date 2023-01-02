@@ -10,7 +10,7 @@ This repository contains all tools relevant to interacting with an NHS deploymen
 
 It contains:
 1)  Easy to follow templates and instructions to interact and search CogStack.
-2)  Recommended workflow to create, train, and run, MedCAT models. 
+2)  Recommended workflows to create, train, and run, MedCAT models.
 
 For further discussions or questions. Please join our official [CogStack/MedCAT forum!](https://discourse.cogstack.org/)
 
@@ -58,10 +58,7 @@ __Linux/MAC OS__
 
 
 ### Step 3: Enter credentials and Login details
-In the main folder of this repository you must populate the [credentials.py](credentials.py) file with your own CogStack hostnames, username and passwords.
-
-If you have any questions or issues obtaining these details please contact your local CogStack administrator.
-
+In the main folder of this repository you can populate the [credentials.py](credentials.py) file with your own CogStack hostnames, username and passwords. 
 
 For an automatic authentication experience, the credentials.py contents can be prepopulated with your CogStack instance credentials:
 ```
@@ -73,6 +70,9 @@ password = ''
 api_username = ''
 api_password = ''
 ```
+For shared machines it is recommended that you leave the passwords blank. This will trigger a prompt in when accessing a cogstack instance.
+
+If you have any questions or issues obtaining these details please contact your local CogStack administrator.
 
 ## Contents
 
@@ -116,6 +116,4 @@ purposes only.
   doi="10.1016/j.artmed.2021.102083"
 }
 ```
-
-
 
