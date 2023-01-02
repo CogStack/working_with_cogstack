@@ -65,10 +65,10 @@ For an automatic authentication experience, the credentials.py contents can be p
 hosts = []  # This is a list of your cogstack elasticsearch instances.
 
 # These are your login details (either via http_auth or API)
-username = ''
-password = ''
-api_username = ''
-api_password = ''
+username = None
+password = None
+api_username = None
+api_password = None
 ```
 For shared machines it is recommended that you leave the passwords blank. This will trigger a prompt in when accessing a cogstack instance.
 
