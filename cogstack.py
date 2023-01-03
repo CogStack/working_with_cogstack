@@ -87,7 +87,6 @@ class CogStack(object):
         for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved..."):
             row = dict()
             row['_index'] = hit['_index']
-            #row['_type'] = hit['_type'] #Add '_type', after _index if ES<v8
             row['_id'] = hit['_id']
             row['_score'] = hit['_score']
             row.update(hit['_source'])
