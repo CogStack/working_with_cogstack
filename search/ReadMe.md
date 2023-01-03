@@ -10,10 +10,10 @@ An example template can be seen below:
 hosts = []  # This is a list of your cogstack elasticsearch instances.
 
 # These are your login details (either via http_auth or API)
-#username = 
-#password = 
-api_username = 
-api_password = 
+#username = None
+#password = None
+api_username = None
+api_password = None
 ```
 
 If you are unsure about the above information please contact your CogStack
