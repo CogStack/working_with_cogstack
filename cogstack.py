@@ -14,19 +14,18 @@ from credentials import *
 
 class CogStack(object):
     """
-    :param hosts: List of CogStack host names
-    :param username: basic_auth username
-    :param password: basic_auth password
-    :param api_username: api username
-    :param api_password: api password
-    :param api: bool
-        If True then api credentials will be used
+    A class for interacting with Elasticsearch.
+    
+    Args:
+        hosts (List[str]): A list of Elasticsearch host URLs.
+        username (str, optional): The username to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a username.
+        password (str, optional): The password to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a password.
+        api (bool, optional): A boolean value indicating whether to use API keys or basic authentication to connect to Elasticsearch. Defaults to False (i.e., use basic authentication).
     """
-    def __init__(self, hosts: List, username: str=None, password: str=None,
-                 api_username: str=None, api_password: str=None, api=False):
+    def __init__(self, hosts: List, username: str=None, password: str=None, api=False):
 
         if api:
-            api_username, api_password = self._check_api_auth_details(api_username, api_password)
+            api_username, api_password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key=(api_username, api_password),
                                                        verify_certs=False)
@@ -36,14 +35,18 @@ class CogStack(object):
                                                        basic_auth=(username, password),
                                                        verify_certs=False)
 
-    def _check_api_auth_details(self, api_username=None, api_password=None):
-        if api_username is None:
-            api_username = input("API Username: ")
-        if api_password is None:
-            api_password = getpass.getpass("API Password: ")
-        return api_username, api_password
 
     def _check_auth_details(self, username=None, password=None):
+        """
+        Prompt the user for a username and password if the values are not provided as function arguments.
+        
+        Args:
+            api_username (str, optional): The API username. If not provided, the user will be prompted to enter a username.
+            api_password (str, optional): The API password. If not provided, the user will be prompted to enter a password.
+        
+        Returns:
+            Tuple[str, str]: A tuple containing the API username and password.
+        """
         if username is None:
             username = input("Username: ")
         if password is None:
@@ -52,13 +55,17 @@ class CogStack(object):
 
     def get_docs_generator(self, index: List, query: Dict, es_gen_size: int=800, request_timeout: int=300):
         """
+        Retrieve a generator object that can be used to iterate through documents in an Elasticsearch index.
+        
+        Args:
+            index (List[str]): A list of Elasticsearch index names to search.
+            query (Dict): A dictionary containing the search query parameters.
+            es_gen_size (int, optional): The number of documents to retrieve per batch. Defaults to 800.
+            request_timeout (int, optional): The time in seconds to wait for a response from Elasticsearch before timing out. Defaults to 300.
 
-        :param query: search query
-        :param index: List of ES indices to search
-        :param es_gen_size:
-        :param request_timeout:
-        :return: search generator object
-        """
+        Returns:
+            generator: A generator object that can be used to iterate through the documents in the specified Elasticsearch index.
+    """
         docs_generator = elasticsearch.helpers.scan(self.elastic,
                                                     query=query,
                                                     index=index,
@@ -68,15 +75,18 @@ class CogStack(object):
 
     def cogstack2df(self, query: Dict, index: str, column_headers=None, es_gen_size: int=800, request_timeout: int=300):
         """
-        Returns DataFrame from a CogStack search
+        Retrieve documents from an Elasticsearch index and convert them to a Pandas DataFrame.
+        
+        Args:
+            query (Dict): A dictionary containing the search query parameters.
+            index (str): The name of the Elasticsearch index to search.
+            column_headers (List[str], optional): A list of column headers to use for the DataFrame. If not provided, the DataFrame will have default column names.
+            es_gen_size (int, optional): The number of documents to retrieve per batch. Defaults to 800.
+            request_timeout (int, optional): The time in seconds to wait for a response from Elasticsearch before timing out. Defaults to 300.
 
-        :param query: search query
-        :param index: index or list of indices
-        :param column_headers: specify column headers
-        :param es_gen_size:
-        :param request_timeout:
-        :return: DataFrame
-        """
+        Returns:
+            pandas.DataFrame: A DataFrame containing the retrieved documents.
+    """
         docs_generator = elasticsearch.helpers.scan(self.elastic,
                                                     query=query,
                                                     index=index,
