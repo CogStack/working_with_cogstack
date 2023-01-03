@@ -1,8 +1,8 @@
 import getpass
+from typing import Dict, List, Any, Optional
 import elasticsearch
 import elasticsearch.helpers
 import pandas as pd
-from typing import Dict, List
 from tqdm.notebook import tqdm
 import eland as ed
 
@@ -109,11 +109,31 @@ class CogStack(object):
             df = pd.DataFrame(temp_results)
         return df
     
-    def DataFrame(self, index: str, columns=None):
+    def DataFrame(self, index: str, columns: Optional[List[str]] = None):
         """
         Fast method to return a pandas dataframe from a CogStack search.
-        :param index: List of indices
-        :return: A dataframe object
-        """
+    
+        Args:
+            index (str): A list of indices to search.
+            columns (List[str], optional): A list of column names to include in the DataFrame. If not provided, all columns will be included.
+    
+        Returns:
+            DataFrame: A pd.DataFrame like object containing the retrieved documents.
+    """
         return ed.DataFrame(es_client=self.elastic, es_index_pattern=index, columns=columns)
+
+
+def list_chunker(user_list: List[Any], n: int) -> List[List[Any]]:
+    """
+    Divide a list into sublists of a specified size.
+    
+    Args:
+        user_list (List[Any]): The list to be divided.
+        n (int): The size of the sublists.
+    
+    Returns:
+        List[List[Any]]: A list of sublists containing the elements of the input list.
+    """
+    n=max(1, n)
+    return [user_list[i:i+n] for i in range(0, len(user_list), n)]
 
