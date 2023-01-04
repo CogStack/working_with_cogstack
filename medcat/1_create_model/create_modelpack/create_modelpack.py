@@ -3,11 +3,11 @@ from medcat.cdb import CDB
 from medcat.cat import CAT
 
 
-cdb_model_path = "data/medcat_models/cdb"
+cdb_model_path = "working_with_cogstack/models/cdb"
 cdb_model = cdb_model_path + "<NAME OF MODEL HERE>.dat"  # Change to specific cdb of interest
 
-vocab_model_path = "data/medcat_models/vocab"
-modelpack_path = "data/medcat_models/modelpack"
+vocab_model_path = "working_with_cogstack/models/vocab"
+modelpack_path = "working_with_cogstack/models/modelpack"
 modelpack_name = "<NAME OF output MODELPACK HERE>.dat"  # Change to the name of your model
 
 # Load cdb
