@@ -32,8 +32,8 @@ A recommended format for the directory structure to efficiently manage each requ
 ├──  processed_data/                # intermediate reference files 
 │    └── ann_folder_path/           # annotated documents
 ├── results/                        # final results
-├──  1_search.ipynb                 # functions to source
-├──  2_run_model.ipynb              # intermediate data
+├──  1_search.ipynb                 # search scripts
+├──  2_run_model.ipynb              # run model
 ├──  3_pipeline.ipynb               # convert annotation to output pipeline
 ├──  4_evaluation.ipynb             # evaluation of the output compared to a gold standard dataset
 ```
