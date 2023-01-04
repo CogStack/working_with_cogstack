@@ -8,11 +8,7 @@ pd.options.mode.chained_assignment = None
 csv_path = input("Enter specific SNOMED pre-cdb csv found in the path data/snomed: ")
 release = csv_path[-12:-4]
 
-if not os.path.exists('models'):
-    os.makedirs('models')
-    print("Creating a 'models' folder to store model")
-
-model_dir = './models/'
+model_dir = "working_with_cogstack/models/cdb"
 output_cdb = model_dir + f"{release}_SNOMED_cdb.dat"
 csv = pd.read_csv(csv_path)
 
