@@ -3,7 +3,7 @@ import os
 
 vocab = Vocab()
 
-model_dir = "data/medcat_models/vocab"
+model_dir = "working_with_cogstack/models/vocab"
 
 # the vocab.txt file need to be in the tab sep format: <token>\t<word_count>\t<vector_embedding_separated_by_spaces>
 # Current vocab uses pre-calculated vector embedding from Word2Vec, future use embeddings calculated from BERT tokeniser
