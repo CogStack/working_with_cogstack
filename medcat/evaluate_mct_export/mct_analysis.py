@@ -412,7 +412,7 @@ class MedcatTrainer_export(object):
 
 
 '''
-
+# TODO: put this useful function somewhere
     def get_all_children(self, terminology, pt2ch):
         """
         Get all children concepts from a specified terminology
