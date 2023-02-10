@@ -3,3 +3,7 @@ credentials.py
 
 # Ignore ipynotebook checkpoints
 *.ipynb_checkpoints
+
+
+# data folders
+data/snomed/
