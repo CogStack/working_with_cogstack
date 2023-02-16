@@ -1,4 +1,4 @@
-#CogStack search results/requests.
+# CogStack search results/requests.
 
 Add subdirectories to more efficiently manage and collate search results relating to a single CogStack Search request.
 
