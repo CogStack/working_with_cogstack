@@ -6,6 +6,7 @@ from medcat.cdb_maker import CDBMaker
 pd.options.mode.chained_assignment = None
 
 csv_path = input("Enter specific SNOMED pre-cdb csv found in the path data/snomed: ")
+# The preprocessing files for snomed can be found here data/snomed:
 release = csv_path[-12:-4]
 
 model_dir = "working_with_cogstack/models/cdb"
