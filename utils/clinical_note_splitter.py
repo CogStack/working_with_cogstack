@@ -1,3 +1,4 @@
+# This script is specific to certain hospital sites and is not part of the main repository.
 import regex
 import logging
 
