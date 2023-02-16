@@ -4,6 +4,10 @@ credentials.py
 # Ignore ipynotebook checkpoints
 *.ipynb_checkpoints
 
-
 # data folders
 data/snomed/
+data/medcattrainer_export/
+data/cogstack_search_results/
+
+# Default environments
+venv
