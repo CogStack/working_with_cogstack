@@ -11,12 +11,12 @@ All raw data relating to a CogStack request. Should be stored here
 
 ## SNOMED
 
-Place holder for all SNOMED related content and downloads [here](data/snomed).
+Place holder for all SNOMED related content and downloads [here](/data/snomed).
 For other terminologies (UMLS/RxNORM etc...) please create a separate folder and store them within this directory.
 
 ## MedCAT Models
 
-All model components and model packs should be stored [here](data/medcat_models)
+All model components and model packs should be stored [here](/data/medcat_models)
 
 
 ## MedCATtrainer 

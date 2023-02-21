@@ -45,12 +45,12 @@ For further information about UMLS API Technical Documentation can be found [her
 
 ### Downloading UMLS
 
-One can use the scripts found in [NLM_umls_download.py](data/umls/NLM_umls_download.py) to download the entire UMLS 
+One can use the scripts found in [NLM_umls_download.py](/data/umls/NLM_umls_download.py) to download the entire UMLS 
 Knowledge Source.
 
 Otherwise, one can access the UMLS Knowledge Sources directly: File Downloads can be found [here](https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html)
 
-Alternatively, you can simply follow the scripts in the [working with UMLS notebook](data/umls/working_with_umls.ipynb). This script will download UMLS and convert the
+Alternatively, you can simply follow the scripts in the [working with UMLS notebook](/data/umls/working_with_umls.ipynb). This script will download UMLS and convert the
  MRCONSO.RFF.ZIP file to a DataFrame. You can then process this file to get ready to build a MedCAT Concept Database! 
 
 ## Citing the UMLS
