@@ -2,7 +2,7 @@
 
 This directory is a placeholder for where project workflows are organised and all relevant information relevant to a particular usecase is stored in a single location.
 
-The [demo project structure](working_with_cogstack/projects/demo_project_stucture) is a template which you can copy and follow to meet the requirements of your usecase.
+The [demo project structure](./demo_project_stucture) is a template which you can copy and follow to meet the requirements of your usecase.
 
 ```
 $ cp -r projects/demo_project_stucture projects/<name of new project>

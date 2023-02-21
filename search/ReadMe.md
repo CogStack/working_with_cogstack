@@ -3,7 +3,7 @@
 This directory contains all the scripts necessary to login and conduct a search.
 
 ## Login details
-1. Create a [credentials.py](working_with_cogstack/credentials.py)
+1. Create a [credentials.py](../credentials.py)
 2. Populate it with your cogstack instance and login details
 An example template can be seen below:
 ```

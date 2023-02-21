@@ -5,8 +5,9 @@ from medcat.cdb_maker import CDBMaker
 
 pd.options.mode.chained_assignment = None
 
-csv_path = input("Enter specific SNOMED pre-cdb csv found in the path data/snomed: ")
-# The preprocessing files for snomed can be found here data/snomed:
+csv_path = input("Enter specific SNOMED pre-cdb csv found in the path ../../data/snomed: ")
+# The preprocessing files for snomed can be found here ../../../data/snomed/:
+# The default is output is ../../../data/snomed/preprocessed_snomed.csv
 release = csv_path[-12:-4]
 
 model_dir = "working_with_cogstack/models/cdb"
@@ -18,8 +19,7 @@ sctid_null_index = csv[csv['name'].isnull()].index.copy()
 csv['name'].iloc[sctid_null_index] = "N/A"
 
 # Only filter acronyms for specific Semantic tags
-csv['acronym'] = csv[~csv['description_type_ids'].str.
-                     contains("assessment scale|"
+csv['acronym'] = csv[~csv['description_type_ids'].str.contains("assessment scale|"
                               "core metadata concept|"
                               "metadata|"
                               "foundation metadata concept"
