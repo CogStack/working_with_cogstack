@@ -1,3 +1,5 @@
+### This script converts a snomed csv file into a medcat CDB
+### To convert files from SNOMED source files (.ZIP) please visit /data/snomed/
 import os
 import pandas as pd
 from medcat.config import Config
