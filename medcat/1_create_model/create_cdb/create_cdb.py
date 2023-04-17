@@ -36,7 +36,6 @@ print("acronyms complete")
 csv = csv.drop_duplicates(keep='first').reset_index(drop=True)
 csv.pop('acronym')
 
-
 # Setup config
 config = Config()
 config.general['spacy_model'] = 'en_core_web_md'
@@ -45,20 +44,16 @@ config.general['cdb_source_name'] = f'SNOMED_{release}'
 
 maker = CDBMaker(config)
 
-
 # Create your CDB
 # Add more cdbs to the list
 csv_paths = [csv_path]
+
 cdb = maker.prepare_csvs(csv_paths, full_build=True)
 
 # Add type_id pretty names to cdb
 cdb.addl_info['type_id2name'] = pd.Series(csv.description_type_ids.values, index=csv.type_ids.astype(str)).to_dict()
-cdb.linking['filters']['cuis'] = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
+cdb.config.linking['filters']['cuis'] = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
 
 # save model
 cdb.save(output_cdb)
 print(f"CDB Model saved successfully as: {output_cdb}")
-
-
-
-
