@@ -14,7 +14,7 @@ from credentials import *
 from cogstack import CogStack
 
 # Initialise search
-cs = CogStack(hosts=hosts, username=username, password=password api=True)
+cs = CogStack(hosts=hosts, username=username, password=password, api=True)
 
 cogsatck_indices = [''] # Enter your list of relevant cogstack indices here
 
