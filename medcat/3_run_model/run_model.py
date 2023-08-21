@@ -1,7 +1,9 @@
-from medcat.cat import MetaCAT
+from medcat.cat import CAT
 import os
 import pandas as pd
 import json
+import pickle
+import re
 
 import logging
 medcat_logger = logging.getLogger('medcat')
@@ -16,23 +18,24 @@ from cogstack import CogStack
 # Initialise search
 cs = CogStack(hosts=hosts, username=username, password=password, api=True)
 
-cogsatck_indices = [''] # Enter your list of relevant cogstack indices here
+cogstack_indices = [''] # Enter your list of relevant cogstack indices here
 
 # log size of indices
-df = cs.DataFrame(index=cogsatck_indices, columns=['body_analysed'])
+df = cs.DataFrame(index=cogstack_indices, columns=['body_analysed'])
 medcat_logger.warning(f'The index size is {df.shape[0]}!')
 del df
 
 # Initialise the model
-model_dir = '../../models/modelpack/'
+base_path = os.path.abspath("../../../")
+model_dir = 'models/modelpack/'
 
 modelpack = '' # enter your model here. Should be the output of trained 'output_modelpack' from step 2.
-model_pack_path = os.path.join(model_dir, modelpack)
+model_pack_path = os.path.join(base_path, model_dir, modelpack)
 
 snomed_filter_path = None
 
-data_dir = '../../data/'
-ann_folder_path = os.path.join(data_dir, f'annotated_docs')
+data_dir = 'data'
+ann_folder_path = os.path.join(base_path, data_dir, f'annotated_docs')
 if not os.path.exisits(ann_folder_path):
     os.makedirs(ann_folder_path)
 
@@ -59,7 +62,7 @@ query = {
     "_source":["_id", "body_analysed"]
 }
 
-search_gen = cs.get_docs_generator(index=cogsatck_indices, query=query, request_timeout=None)
+search_gen = cs.get_docs_generator(index=cogstack_indices, query=query, request_timeout=None)
 
 def relevant_text_gen(generator, doc_id = '_id', text_col='body_analysed'):
     for i in generator:
@@ -70,12 +73,23 @@ def relevant_text_gen(generator, doc_id = '_id', text_col='body_analysed'):
             continue
 
 batch_char_size = 500000  # Batch size (BS) in number of characters
-cat.multiprocessing(relevant_text_gen(search_gen),
-                    batch_char_size=batch_char_size,
+
+results = cat.multiprocessing(relevant_text_gen(search_gen),
+                    batch_size_chars=batch_char_size,
                     only_cui=False,
                     nproc=8, # Number of processors
+                    out_split_size_chars=20*batch_char_size,
                     save_dir_path=ann_folder_path,
+                    min_free_memory=0.1,
                     )
+
+# Save the final output
+items = os.listdir(ann_folder_path)
+items.remove('annotated_ids.pickle')
+numeric_parts = [int(re.search(r'\d+', file_name).group()) for file_name in items]
+next_file_name = f'part_{max(numeric_parts)+1}.pickle'
+with open(os.path.join(ann_folder_path, next_file_name), 'wb') as pickle_file:
+    pickle.dump(results, pickle_file)
 
 medcat_logger.warning(f'Annotation process complete!')
 
