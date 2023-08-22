@@ -2,8 +2,6 @@ from medcat.cat import CAT
 import os
 import pandas as pd
 import json
-import pickle
-import re
 
 import logging
 medcat_logger = logging.getLogger('medcat')
@@ -74,7 +72,7 @@ def relevant_text_gen(generator, doc_id = '_id', text_col='body_analysed'):
 
 batch_char_size = 500000  # Batch size (BS) in number of characters
 
-results = cat.multiprocessing(relevant_text_gen(search_gen),
+cat.multiprocessing(relevant_text_gen(search_gen),
                     batch_size_chars=batch_char_size,
                     only_cui=False,
                     nproc=8, # Number of processors
@@ -82,14 +80,6 @@ results = cat.multiprocessing(relevant_text_gen(search_gen),
                     save_dir_path=ann_folder_path,
                     min_free_memory=0.1,
                     )
-
-# Save the final output
-items = os.listdir(ann_folder_path)
-items.remove('annotated_ids.pickle')
-numeric_parts = [int(re.search(r'\d+', file_name).group()) for file_name in items]
-next_file_name = f'part_{max(numeric_parts)+1}.pickle'
-with open(os.path.join(ann_folder_path, next_file_name), 'wb') as pickle_file:
-    pickle.dump(results, pickle_file)
 
 medcat_logger.warning(f'Annotation process complete!')
 
