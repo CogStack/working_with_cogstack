@@ -43,7 +43,6 @@ try:
         print("Operation cancelled.")
         
 except subprocess.CalledProcessError as e:
-    print(str(e.returncode))
     if e.returncode == 1:
         print("No stash entries found. Continuing with git pull.")
         # Run the command to perform a git pull
