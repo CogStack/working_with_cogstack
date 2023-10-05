@@ -5,6 +5,14 @@ from medcat.cdb_maker import CDBMaker
 
 pd.options.mode.chained_assignment = None
 
+# relative to file path
+_FILE_DIR = os.path.dirname(__file__)
+# relative path to working_with_cogstack folder
+_REL_PATH = os.path.join("..", "..", "..")
+_BASE_PATH = os.path.join(_FILE_DIR, _REL_PATH)
+# absolute path to working_with_cogstack folder
+BASE_PATH = os.path.abspath(_BASE_PATH)
+
 # this is expected to be output from medcat.utils.preprocess_umls
 # i.e not the raw UMLS files
 csv_path = input("Enter specific UMLS pre-cdb csv found in the path data/umls: ")
@@ -14,8 +22,8 @@ if not os.path.exists('models'):
     os.makedirs('models')
     print("Creating a 'models' folder to store model")
 
-model_dir = './models/'
-output_cdb = model_dir + f"{release}_UMLS_cdb.dat"
+model_dir = os.path.join(BASE_PATH, "models", "cdb")
+output_cdb = os.path.join(model_dir, f"{release}_UMLS_cdb.dat")
 csv = pd.read_csv(csv_path)
 
 # Remove null values
