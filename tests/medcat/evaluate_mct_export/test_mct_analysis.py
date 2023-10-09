@@ -31,7 +31,7 @@ class MCTExportInitTests(unittest.TestCase):
         self.assertIsInstance(inst, MedcatTrainer_export)
 
 
-class MCTExportTests(unittest.TestCase):
+class BaseMCTExportTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -40,6 +40,9 @@ class MCTExportTests(unittest.TestCase):
     def assertNonEmptyDataframe(self, df):
         self.assertIsInstance(df, pd.DataFrame)
         self.assertFalse(df.empty)
+
+
+class MCTExportBasicTests(BaseMCTExportTests):
 
     def test_can_get_annotations(self):
         annotation_df = self.export.annotation_df()
@@ -67,3 +70,35 @@ class MCTExportTests(unittest.TestCase):
     # def test_can_meta_anns_concept_summary(self):
     #     meta_anns_summary_df = self.export.meta_anns_concept_summary()
     #     self.assertNonEmptyDataframe(meta_anns_summary_df)
+
+
+class MCTExportUsageTests(BaseMCTExportTests):
+
+    def assertDataFrameHasRowsColumns(self, df,
+                                      exp_rows: int,
+                                      exp_columns: int):
+        self.assertEqual(len(df.index), exp_rows)
+        self.assertEqual(len(df.columns), exp_columns)
+
+    def test_annotations_has_correct_rows_columns(self,
+                                                  exp_rows=362,
+                                                  exp_columns=18):
+        ann_df = self.export.annotation_df()
+        self.assertDataFrameHasRowsColumns(ann_df, exp_rows, exp_columns)
+
+    def test_summary_has_correct_rows_columns(self,
+                                              exp_rows=197,
+                                              exp_columns=5):
+        summary_df = self.export.concept_summary()
+        self.assertDataFrameHasRowsColumns(summary_df, exp_rows, exp_columns)
+
+    def test_cuser_stats_has_correct_rows_columns(self,
+                                                  exp_rows=1,
+                                                  exp_columns=2):
+        users_stats = self.export.user_stats()
+        self.assertDataFrameHasRowsColumns(users_stats, exp_rows, exp_columns)
+
+    def test_cuser_stats_has_correct_user(self, expected="mart"):
+        unique_users = self.export.user_stats()["user"].unique().tolist()
+        self.assertEqual(len(unique_users), 1)
+        self.assertEqual(unique_users[0], expected)
