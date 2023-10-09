@@ -21,6 +21,9 @@ from medcat.utils.meta_cat.data_utils import prepare_from_json, encode_category_
 import warnings
 
 
+DATETIME_FORMAT = r"%Y-%m-%d:%H:%M:%S"
+
+
 class MedcatTrainer_export(object):
     """
     Class to analyse MedCATtrainer exports
@@ -85,7 +88,18 @@ class MedcatTrainer_export(object):
         annotation_df = pd.DataFrame(self.annotations)
         if self.cat:
             annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(self.cat.cdb.cui2preferred_name))
-        annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified']).dt.tz_localize(None)
+        exceptions = []
+        # try the default format as well as the format specified above
+        for format in [None, DATETIME_FORMAT]:
+            try:
+                annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified'], format=format).dt.tz_localize(None)
+                exceptions.clear()
+                break
+            except ValueError as e:
+                exceptions.append(e)
+        if exceptions:
+            # if there's issues
+            raise ValueError(*exceptions)
         return annotation_df
 
     def concept_summary(self, extra_cui_filter=None):
