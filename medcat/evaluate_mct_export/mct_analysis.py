@@ -293,6 +293,8 @@ class MedcatTrainer_export(object):
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
+        if not self.cat:
+            raise ValueError("No model pack specified")
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
                           & (anns_df['irrelevant'] != True)]
@@ -317,6 +319,8 @@ class MedcatTrainer_export(object):
         return meta_df
 
     def meta_anns_concept_summary(self):
+        if not self.cat:
+            raise ValueError("No model pack specified")
         meta_df = self.full_annotation_df()
         meta_performance = {}
         for cui in meta_df.cui.unique():
