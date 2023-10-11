@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Dict
+from typing import List, Dict, Iterator, Tuple
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
@@ -47,24 +47,32 @@ class MedcatTrainer_export(object):
             if model_pack_path[-4:] == '.zip':
                 self.model_pack_path = model_pack_path[:-4]
 
-    def _annotations(self):
-        ann_lst = []
+    def _iter_docs(self) -> Iterator[Tuple[str, dict]]:
         for proj in self.mct_export['projects']:
             self.project_names.append(proj['name'])
             for doc in proj['documents']:
-                self.document_names.append(doc['name'])
-                for anns in doc['annotations']:
-                    meta_anns_dict = dict()
-                    for meta_ann in anns['meta_anns'].items():
-                        meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
-                    _anns = anns.copy()
-                    _anns.pop('meta_anns')
-                    output = dict()
-                    output['project'] = proj['name']
-                    output['document_name'] = doc['name']
-                    output.update(_anns)
-                    output.update(meta_anns_dict)
-                    ann_lst.append(output)
+                yield proj['name'], doc
+
+    def _iter_anns(self) -> Iterator[Tuple[str, str, dict]]:
+        for proj_name, doc in self._iter_docs():
+            self.document_names.append(doc['name'])
+            for ann in doc['annotations']:
+                yield proj_name, doc['name'], ann
+
+    def _annotations(self):
+        ann_lst = []
+        for proj_name, doc_name, ann in self._iter_anns():
+            meta_anns_dict = dict()
+            for meta_ann in ann['meta_anns'].items():
+                meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
+            _anns = ann.copy()
+            _anns.pop('meta_anns')
+            output = dict()
+            output['project'] = proj_name
+            output['document_name'] = doc_name
+            output.update(_anns)
+            output.update(meta_anns_dict)
+            ann_lst.append(output)
         return ann_lst
 
     def _load_mct_exports(self, list_of_paths_to_mct_exports):
