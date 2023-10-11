@@ -206,9 +206,9 @@ class MedcatTrainer_export(object):
             print(f'The figure was saved at: {filename}')
         return fig
 
-    def _rename_other(self, meta_anns: dict, name_replacement: str,
-                      meta_ann_name: str, meta_values: list,
-                      meta_ann_values2rename: dict):
+    def _rename_meta_ann_values(self, meta_anns: dict, name_replacement: str,
+                                meta_ann_name: str, meta_values: list,
+                                meta_ann_values2rename: dict):
         if meta_anns[name_replacement]['name'] == meta_ann_name:
             for value in meta_values:
                 if meta_anns[name_replacement]['value'] == value:
@@ -219,8 +219,8 @@ class MedcatTrainer_export(object):
         meta_anns[name_replacement] = meta_anns.pop(name2replace)
         meta_anns[name_replacement]['name'] = name_replacement
         for meta_ann_name, meta_values in meta_ann_values2rename.items():
-            self._rename_other(meta_anns, name_replacement, meta_ann_name, meta_values,
-                               meta_ann_values2rename)
+            self._rename_meta_ann_values(meta_anns, name_replacement, meta_ann_name, meta_values,
+                                         meta_ann_values2rename)
 
     def _rename_meta_ann(self, meta_anns: dict,
                          meta_anns2rename=dict(), meta_ann_values2rename=dict()):
