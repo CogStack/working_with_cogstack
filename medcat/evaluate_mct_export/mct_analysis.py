@@ -136,7 +136,7 @@ class MedcatTrainer_export(object):
                                 'fn': 'fn_examples',
                                 'tp': 'tp_examples'})
             concept_count_df = concept_count_df.merge(examples_df, how='left', on='cui')
-            
+
         return concept_count_df
 
     def user_stats(self, by_user: bool = True):
