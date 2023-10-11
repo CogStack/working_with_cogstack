@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Dict, Iterator, Tuple
+from typing import List, Dict, Iterator, Tuple, Optional, List
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
@@ -29,12 +29,12 @@ class MedcatTrainer_export(object):
     Class to analyse MedCATtrainer exports
     """
 
-    def __init__(self, mct_export_paths, model_pack_path=None):
+    def __init__(self, mct_export_paths: List[str], model_pack_path: Optional[str] = None):
         """
         :param mct_export_paths: List of paths to MedCATtrainer exports
         :param model_pack_path: Path to medcat modelpack
         """
-        self.cat = None
+        self.cat: Optional[CAT] = None
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
@@ -62,7 +62,7 @@ class MedcatTrainer_export(object):
             for ann in doc['annotations']:
                 yield proj_name, doc['name'], ann
 
-    def _annotations(self):
+    def _annotations(self) -> List[dict]:
         ann_lst = []
         # reset project and document names
         # in case of a second time calling _annotations()
@@ -83,7 +83,7 @@ class MedcatTrainer_export(object):
             ann_lst.append(output)
         return ann_lst
 
-    def _load_mct_exports(self, list_of_paths_to_mct_exports):
+    def _load_mct_exports(self, list_of_paths_to_mct_exports: list[str]) -> dict:
         """
         Loads a list of multiple MCT exports
         :param list_of_paths_to_mct_exports: list of mct exports
@@ -96,7 +96,7 @@ class MedcatTrainer_export(object):
         mct_proj_exports = {'projects': mct_projects}
         return mct_proj_exports
 
-    def annotation_df(self):
+    def annotation_df(self) -> pd.DataFrame:
         """
         DataFrame of all annotations created
         :return: DataFrame
@@ -118,7 +118,7 @@ class MedcatTrainer_export(object):
             raise ValueError(*exceptions)
         return annotation_df
 
-    def concept_summary(self, extra_cui_filter=None):
+    def concept_summary(self, extra_cui_filter: Optional[str] = None) -> pd.DataFrame:
         """
         Summary of only correctly annotated concepts from a mct export
         :return: DataFrame summary of annotations.
@@ -155,7 +155,7 @@ class MedcatTrainer_export(object):
 
         return concept_count_df
 
-    def user_stats(self, by_user: bool = True):
+    def user_stats(self, by_user: bool = True) -> pd.DataFrame:
         """
         Summary of user annotation work done
 
@@ -177,7 +177,7 @@ class MedcatTrainer_export(object):
             return data
         return data[['user', 'count', 'date']]
 
-    def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = False):
+    def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = ''):
         """
         Plot annotator user stats against time.
         An alternative method of saving the file is: plot_user_stats().write_image("path/filename.png")
@@ -232,7 +232,7 @@ class MedcatTrainer_export(object):
             except KeyError:
                 pass
 
-    def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
+    def rename_meta_anns(self, meta_anns2rename: dict = dict(), meta_ann_values2rename: dict = dict()):
         """Rename the names and/or values of meta annotations.
 
         PS!
@@ -289,7 +289,7 @@ class MedcatTrainer_export(object):
         predictions = np.argmax(np.concatenate(all_logits, axis=0), axis=1)
         return predictions
 
-    def _eval(self, metacat_model, mct_export):
+    def _eval(self, metacat_model, mct_export) -> dict:
         g_config = metacat_model.config.general
         t_config = metacat_model.config.train
         t_config['test_size'] = 0
@@ -323,7 +323,7 @@ class MedcatTrainer_export(object):
 
         return {'predictions': result, 'meta_values': _}
 
-    def full_annotation_df(self):
+    def full_annotation_df(self) -> pd.DataFrame:
         """
         DataFrame of all annotations created including meta_annotation predictions.
         This function is similar to annotation_df with the addition of Meta_annotation predictions from the medcat model.
@@ -355,7 +355,7 @@ class MedcatTrainer_export(object):
 
         return meta_df
 
-    def meta_anns_concept_summary(self):
+    def meta_anns_concept_summary(self) -> pd.DataFrame:
         if not self.cat:
             raise ValueError("No model pack specified")
         meta_df = self.full_annotation_df()
