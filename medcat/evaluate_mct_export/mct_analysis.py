@@ -47,15 +47,18 @@ class MedcatTrainer_export(object):
             if model_pack_path[-4:] == '.zip':
                 self.model_pack_path = model_pack_path[:-4]
 
-    def _iter_docs(self) -> Iterator[Tuple[str, dict]]:
+    def _iter_docs(self, add_proj_names: bool = True) -> Iterator[Tuple[str, dict]]:
         for proj in self.mct_export['projects']:
-            self.project_names.append(proj['name'])
+            if add_proj_names:
+                self.project_names.append(proj['name'])
             for doc in proj['documents']:
                 yield proj['name'], doc
 
-    def _iter_anns(self) -> Iterator[Tuple[str, str, dict]]:
-        for proj_name, doc in self._iter_docs():
-            self.document_names.append(doc['name'])
+    def _iter_anns(self, add_doc_names: bool = True,
+                   add_proj_names: bool = True) -> Iterator[Tuple[str, str, dict]]:
+        for proj_name, doc in self._iter_docs(add_proj_names):
+            if add_doc_names:
+                self.document_names.append(doc['name'])
             for ann in doc['annotations']:
                 yield proj_name, doc['name'], ann
 
