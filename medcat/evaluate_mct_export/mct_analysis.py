@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Dict, Iterator, Tuple, Optional, List
+from typing import List, Dict, Iterator, Tuple, Optional
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
