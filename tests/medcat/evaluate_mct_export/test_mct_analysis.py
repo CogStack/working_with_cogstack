@@ -117,3 +117,63 @@ class MCTExportUsageTests(BaseMCTExportTests):
         unique_users = self.export.user_stats()["user"].unique().tolist()
         self.assertEqual(len(unique_users), 1)
         self.assertEqual(unique_users[0], expected)
+
+
+class MCTExportMetaAnnRenameTests(unittest.TestCase):
+    NAMES2RENAME = {"Status": "VERSION"}
+    VALUES2RENAME = {"Status": {"Affirmed": "Got it!"}}
+    # can only rename values if renaming names
+    # so need a mapping from the same name to the same name
+    # for each name used in values
+    VALUES_RENAME_HELPER = dict((n, n) for n in VALUES2RENAME)
+
+    def setUp(self) -> None:
+        self.export = MedcatTrainer_export([MCT_EXPORT_JSON_PATH, ], None)
+
+    def _get_all_meta_anns(self):
+        for proj in self.export.mct_export['projects']:
+            for doc in proj['documents']:
+                for ann in doc['annotations']:
+                    for meta_ann in ann["meta_anns"].items():
+                        yield meta_ann
+
+    def _check_names(self, prev_anns: list):
+        for (meta_ann_name, _), (prev_name, _) in zip(self._get_all_meta_anns(), prev_anns):
+            for name, replacement_name in self.NAMES2RENAME.items():
+                with self.subTest(f"{name} -> {replacement_name} ({meta_ann_name})"):
+                    self.assertNotEqual(meta_ann_name, name)
+                    if prev_name == name:
+                        self.assertEqual(meta_ann_name, replacement_name)
+
+    def test_meta_annotations_renamed_names(self):
+        prev_anns = list(self._get_all_meta_anns())
+        self.export.rename_meta_anns(meta_anns2rename=self.NAMES2RENAME)
+        self._check_names(prev_anns)
+
+    def _check_values(self, prev_anns: list, only_values: bool = True):
+        for (name, ann), (prev_name, prev_ann) in zip(self._get_all_meta_anns(), prev_anns):
+            with self.subTest(f"{prev_ann} -> {ann}"):
+                if only_values:
+                    # if only changing values, not names themselves
+                    self.assertEqual(name, prev_name, "Names should not change")
+                for target_name, value_map in self.VALUES2RENAME.items():
+                    # if correct target and has a value that can be remapped
+                    if name == target_name and prev_ann["value"] in value_map:
+                        with self.subTest(f"{target_name} with {value_map}"):
+                            start_value = prev_ann["value"]
+                            new_value = ann["value"]
+                            exp_value = value_map[start_value]
+                            self.assertEqual(new_value, exp_value)
+
+    def test_meta_annotations_renamed_values(self):
+        prev_anns = list(self._get_all_meta_anns())
+        self.export.rename_meta_anns(meta_anns2rename=self.VALUES_RENAME_HELPER,
+                                     meta_ann_values2rename=self.VALUES2RENAME)
+        self._check_values(prev_anns)
+
+    def test_meta_annotations_renamed_names_and_values(self):
+        prev_anns = list(self._get_all_meta_anns())
+        self.export.rename_meta_anns(meta_anns2rename=self.NAMES2RENAME,
+                                     meta_ann_values2rename=self.VALUES2RENAME)
+        self._check_names(prev_anns)
+        self._check_values(prev_anns, only_values=False)
