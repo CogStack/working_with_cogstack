@@ -50,7 +50,7 @@ class MedcatTrainer_export(object):
     def _annotations(self):
         ann_lst = []
         for proj in self.mct_export['projects']:
-            self.project_names.append(proj)
+            self.project_names.append(proj['name'])
             for doc in proj['documents']:
                 self.document_names.append(doc['name'])
                 for anns in doc['annotations']:
