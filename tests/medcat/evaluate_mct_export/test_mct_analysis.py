@@ -97,7 +97,7 @@ class MCTExportUsageTests(BaseMCTExportTests):
 
     def test_annotations_has_correct_rows_columns(self,
                                                   exp_rows=362,
-                                                  exp_columns=18):
+                                                  exp_columns=19):
         ann_df = self.export.annotation_df()
         self.assertDataFrameHasRowsColumns(ann_df, exp_rows, exp_columns)
 
