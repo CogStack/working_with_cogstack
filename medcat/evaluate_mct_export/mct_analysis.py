@@ -414,6 +414,8 @@ class MedcatTrainer_export(object):
         :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
         :return: An full excel report for MedCATtrainer annotation work done.
         """
+        if not self.cat:
+            raise ValueError("No model pack specified")
         if concept_filter:
             with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
