@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Optional, Tuple, Any, Dict
+from typing import List, Dict
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
@@ -46,7 +46,7 @@ class MedcatTrainer_export(object):
         if model_pack_path is not None:
             if model_pack_path[-4:] == '.zip':
                 self.model_pack_path = model_pack_path[:-4]
-        
+
     def _annotations(self):
         ann_lst = []
         for proj in self.mct_export['projects']:
@@ -189,7 +189,7 @@ class MedcatTrainer_export(object):
             plotly.offline.plot(fig, filename=filename)
             print(f'The figure was saved at: {filename}')
         return fig
-    
+
     def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
         """
         TODO: the meta_ann_values2rename has issues
