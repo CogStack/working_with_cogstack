@@ -206,6 +206,32 @@ class MedcatTrainer_export(object):
             print(f'The figure was saved at: {filename}')
         return fig
 
+    def _rename_other(self, meta_anns: dict, name_replacement: str,
+                      meta_ann_name: str, meta_values: list,
+                      meta_ann_values2rename: dict):
+        if meta_anns[name_replacement]['name'] == meta_ann_name:
+            for value in meta_values:
+                if meta_anns[name_replacement]['value'] == value:
+                    meta_anns[name_replacement]['value'] = meta_ann_values2rename[meta_ann_name][value]
+
+    def _rename_meta_ann_for_name(self, meta_anns: dict, name2replace: str, name_replacement: str,
+                                  meta_ann_values2rename: dict):
+        meta_anns[name_replacement] = meta_anns.pop(name2replace)
+        meta_anns[name_replacement]['name'] = name_replacement
+        for meta_ann_name, meta_values in meta_ann_values2rename.items():
+            self._rename_other(meta_anns, name_replacement, meta_ann_name, meta_values,
+                               meta_ann_values2rename)
+
+    def _rename_meta_ann(self, meta_anns: dict,
+                         meta_anns2rename=dict(), meta_ann_values2rename=dict()):
+        for meta_name2replace in meta_anns2rename:
+            try:
+                self._rename_meta_ann_for_name(meta_anns, meta_name2replace,
+                                               meta_anns2rename[meta_name2replace],
+                                               meta_ann_values2rename)
+            except KeyError:
+                pass
+
     def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
         """
         TODO: the meta_ann_values2rename has issues
@@ -213,21 +239,10 @@ class MedcatTrainer_export(object):
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
         """
-        for proj in self.mct_export['projects']:
-            for doc in proj['documents']:
-                for anns in doc['annotations']:
-                    if len(anns['meta_anns']) > 0:
-                        for meta_name2replace in meta_anns2rename:
-                            try:
-                                anns['meta_anns'][meta_anns2rename[meta_name2replace]] = anns['meta_anns'].pop(meta_name2replace)
-                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] = meta_anns2rename[meta_name2replace]
-                                for meta_ann_name, meta_values in meta_ann_values2rename.items():
-                                    if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] == meta_ann_name:
-                                        for value in meta_values:
-                                            if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] == value:
-                                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
-                            except KeyError:
-                                pass
+        for _, _, ann in self._iter_anns(False, False):
+            meta_anns = ann['meta_anns']
+            if len(meta_anns) > 0:
+                self._rename_meta_ann(meta_anns, meta_anns2rename, meta_ann_values2rename)
         self.annotations = self._annotations()
         return
 
