@@ -233,7 +233,13 @@ class MedcatTrainer_export(object):
                 pass
 
     def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
-        """
+        """Rename the names and/or values of meta annotations.
+
+        PS!
+        The renaming of values is currently only supported if renaming names as well.
+        If you want to rename the values but keep the names, it would be suggested
+        to have the `meta_anns2rename` a dict mappign the names to themselves.
+
         TODO: the meta_ann_values2rename has issues
         :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
