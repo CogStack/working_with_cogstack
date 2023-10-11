@@ -80,6 +80,16 @@ class MCTExportUsageTests(BaseMCTExportTests):
         self.assertEqual(len(df.index), exp_rows)
         self.assertEqual(len(df.columns), exp_columns)
 
+    def test_hash_correct_projects(self, exp_proj=['MartTestAnnotation']):
+        got = self.export.project_names
+        self.assertEqual(len(got), len(exp_proj))
+        self.assertEqual(got, exp_proj)
+
+    def test_hash_correct_documents(self, exp_docs=['Doc 1', 'Doc 2', 'Doc 3', 'Doc 4', 'Doc 5']):
+        got = self.export.document_names
+        self.assertEqual(len(got), len(exp_docs))
+        self.assertEqual(got, exp_docs)
+
     def test_annotations_has_correct_rows_columns(self,
                                                   exp_rows=362,
                                                   exp_columns=18):
