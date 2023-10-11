@@ -64,6 +64,11 @@ class MedcatTrainer_export(object):
 
     def _annotations(self):
         ann_lst = []
+        # reset project and document names
+        # in case of a second time calling _annotations()
+        # i.e if/when renaming meta annotations
+        self.project_names.clear()
+        self.document_names.clear()
         for proj_name, doc_name, ann in self._iter_anns():
             meta_anns_dict = dict()
             for meta_ann in ann['meta_anns'].items():
