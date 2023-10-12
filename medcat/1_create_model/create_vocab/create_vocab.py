@@ -18,4 +18,4 @@ vocab_dir = os.path.join(BASE_PATH, "models", "vocab")
 
 vocab.add_words(os.path.join(vocab_dir, 'vocab_data.txt'), replace=True)
 vocab.make_unigram_table()
-vocab.save(os.path.join(vocab_dir + "vocab.dat"))
+vocab.save(os.path.join(vocab_dir, "vocab.dat"))
