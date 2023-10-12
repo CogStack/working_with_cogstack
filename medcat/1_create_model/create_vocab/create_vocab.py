@@ -11,4 +11,4 @@ model_dir = "working_with_cogstack/models/vocab"
 
 vocab.add_words(os.path.join(model_dir, 'vocab_data.txt'), replace=True)
 vocab.make_unigram_table()
-vocab.save(os.path.join(model_dir + "vocab.dat"))
+vocab.save(os.path.join(model_dir, "vocab.dat"))
