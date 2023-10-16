@@ -1,1 +1,2 @@
-medcat==1.5.0
+medcat==1.5.3
+numpy<1.24.0

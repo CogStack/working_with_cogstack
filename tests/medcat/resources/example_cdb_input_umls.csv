@@ -1,0 +1,100 @@
+cui,name_status,ontologies,name,type_ids
+C0000005,Y,MSH,(131)I-Macroaggregated Albumin,T116
+C0000005,Y,MSH,(131)I-Macroaggregated Albumin,T121
+C0000005,Y,MSH,(131)I-Macroaggregated Albumin,T130
+C0000005,Y,MSH,(131)I-MAA,T116
+C0000005,Y,MSH,(131)I-MAA,T121
+C0000005,Y,MSH,(131)I-MAA,T130
+C0000039,N,RXNORM,"1,2-dipalmitoylphosphatidylcholine",T109
+C0000039,N,RXNORM,"1,2-dipalmitoylphosphatidylcholine",T121
+C0000039,Y,MTH,"1,2-dipalmitoylphosphatidylcholine",T109
+C0000039,Y,MTH,"1,2-dipalmitoylphosphatidylcholine",T121
+C0000039,N,SNMI,Dipalmitoylphosphatidylcholine,T109
+C0000039,N,SNMI,Dipalmitoylphosphatidylcholine,T121
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T109
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T121
+C0000039,N,SNOMEDCT_US,Dipalmitoylphosphatidylcholine,T109
+C0000039,N,SNOMEDCT_US,Dipalmitoylphosphatidylcholine,T121
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T109
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T121
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T109
+C0000039,N,LNC,Dipalmitoylphosphatidylcholine,T121
+C0000039,Y,MSH,Dipalmitoylphosphatidylcholine,T109
+C0000039,Y,MSH,Dipalmitoylphosphatidylcholine,T121
+C0000039,Y,MSH,Dipalmitoylglycerophosphocholine,T109
+C0000039,Y,MSH,Dipalmitoylglycerophosphocholine,T121
+C0000039,Y,MSH,Dipalmitoyllecithin,T109
+C0000039,Y,MSH,Dipalmitoyllecithin,T121
+C0000039,Y,MSH,"Phosphatidylcholine, Dipalmitoyl",T109
+C0000039,Y,MSH,"Phosphatidylcholine, Dipalmitoyl",T121
+C0000052,N,MSH,"1,4-alpha-Glucan Branching Enzyme",T116
+C0000052,N,MSH,"1,4-alpha-Glucan Branching Enzyme",T126
+C0000052,Y,MTH,"1,4-alpha-Glucan Branching Enzyme",T116
+C0000052,Y,MTH,"1,4-alpha-Glucan Branching Enzyme",T126
+C0000052,N,SNMI,Branching enzyme,T116
+C0000052,N,SNMI,Branching enzyme,T126
+C0000052,Y,SNOMEDCT_US,Branching enzyme,T116
+C0000052,Y,SNOMEDCT_US,Branching enzyme,T126
+C0000052,Y,MSH,"Enzyme, Branching",T116
+C0000052,Y,MSH,"Enzyme, Branching",T126
+C0000052,Y,MSH,"Glycosyltransferase, Branching",T116
+C0000052,Y,MSH,"Glycosyltransferase, Branching",T126
+C0000052,Y,MSH,Starch Branching Enzyme,T116
+C0000052,Y,MSH,Starch Branching Enzyme,T126
+C0000052,Y,SNM,alpha-Glucan-branching glycosyltransferase,T116
+C0000052,Y,SNM,alpha-Glucan-branching glycosyltransferase,T126
+C0000074,Y,MSH,1-Alkyl-2-Acylphosphatidates,T109
+C0000074,Y,MSH,1 Alkyl 2 Acylphosphatidates,T109
+C0000084,Y,MSH,1-Carboxyglutamic Acid,T116
+C0000084,Y,MSH,1-Carboxyglutamic Acid,T123
+C0000084,Y,MSH,gamma-Carboxyglutamic Acid,T116
+C0000084,Y,MSH,gamma-Carboxyglutamic Acid,T123
+C0000096,Y,MSH,1-Methyl-3-isobutylxanthine,T109
+C0000096,Y,MSH,1-Methyl-3-isobutylxanthine,T121
+C0000096,Y,MSH,3-Isobutyl-1-methylxanthine,T109
+C0000096,Y,MSH,3-Isobutyl-1-methylxanthine,T121
+C0000096,Y,MSH,IBMX,T109
+C0000096,Y,MSH,IBMX,T121
+C0000096,Y,MSH,Isobutyltheophylline,T109
+C0000096,Y,MSH,Isobutyltheophylline,T121
+C0000097,Y,MSH,"1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine",T109
+C0000097,Y,MSH,"1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine",T131
+C0000097,N,CSP,MPTP,T109
+C0000097,N,CSP,MPTP,T131
+C0000097,N,PSY,MPTP,T109
+C0000097,N,PSY,MPTP,T131
+C0000097,Y,MSH,MPTP,T109
+C0000097,Y,MSH,MPTP,T131
+C0000097,Y,CHV,mptp,T109
+C0000097,Y,CHV,mptp,T131
+C0000097,N,RCD,Methylphenyltetrahydropyridine,T109
+C0000097,N,RCD,Methylphenyltetrahydropyridine,T131
+C0000097,N,LCH_NW,Methylphenyltetrahydropyridine,T109
+C0000097,N,LCH_NW,Methylphenyltetrahydropyridine,T131
+C0000097,N,PSY,Methylphenyltetrahydropyridine,T109
+C0000097,N,PSY,Methylphenyltetrahydropyridine,T131
+C0000097,Y,SNOMEDCT_US,Methylphenyltetrahydropyridine,T109
+C0000097,Y,SNOMEDCT_US,Methylphenyltetrahydropyridine,T131
+C0000097,Y,CSP,methylphenyltetrahydropyridine,T109
+C0000097,Y,CSP,methylphenyltetrahydropyridine,T131
+C0000098,Y,MSH,1-Methyl-4-phenylpyridinium,T109
+C0000098,Y,MSH,1-Methyl-4-phenylpyridinium,T131
+C0000098,Y,MSH,1-Methyl-4-phenylpyridinium Ion,T109
+C0000098,Y,MSH,1-Methyl-4-phenylpyridinium Ion,T131
+C0000098,Y,MSH,Cyperquat,T109
+C0000098,Y,MSH,Cyperquat,T131
+C0000098,Y,CSP,MPP+,T109
+C0000098,Y,CSP,MPP+,T131
+C0000098,Y,MSH,N-Methyl-4-phenylpyridine,T109
+C0000098,Y,MSH,N-Methyl-4-phenylpyridine,T131
+C0000098,Y,MSH,1-Methyl-4-phenylpyridine,T109
+C0000098,Y,MSH,1-Methyl-4-phenylpyridine,T131
+C0000098,Y,MSH,N METHYL 4 PHENYLPYRIDINIUM,T109
+C0000098,Y,MSH,N METHYL 4 PHENYLPYRIDINIUM,T131
+C0000098,Y,MSH,"Pyridinium, 1-methyl-4-phenyl-",T109
+C0000098,Y,MSH,"Pyridinium, 1-methyl-4-phenyl-",T131
+C0000102,Y,MSH,1-Naphthylamine,T109
+C0000102,Y,MSH,1-Naphthylamine,T131
+C0000102,Y,CHV,1-naphthylamine,T109
+C0000102,Y,CHV,1-naphthylamine,T131
+C0000102,Y,MSH,alpha-Naphthylamine,T109
