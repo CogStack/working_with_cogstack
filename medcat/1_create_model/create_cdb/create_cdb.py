@@ -5,13 +5,25 @@ from medcat.cdb_maker import CDBMaker
 
 pd.options.mode.chained_assignment = None
 
-csv_path = input("Enter specific SNOMED pre-cdb csv found in the path ../../data/snomed: ")
+# relative to file path
+_FILE_DIR = os.path.dirname(__file__)
+# relative path to working_with_cogstack folder
+_REL_PATH = os.path.join("..", "..", "..")
+_BASE_PATH = os.path.join(_FILE_DIR, _REL_PATH)
+# absolute path to working_with_cogstack folder
+BASE_PATH = os.path.abspath(_BASE_PATH)
+
+EXPECTED_CSV_PATH = os.path.join(_REL_PATH, "data", "snomed")
+
+csv_path = input(f"Enter specific SNOMED pre-cdb csv found in the path {EXPECTED_CSV_PATH}: ")
 # The preprocessing files for snomed can be found here ../../../data/snomed/:
 # The default is output is ../../../data/snomed/preprocessed_snomed.csv
 release = csv_path[-12:-4]
+# doing it here so that it can later be used for CDBMaker
+csv_path = os.path.join(EXPECTED_CSV_PATH, csv_path)
 
-model_dir = "working_with_cogstack/models/cdb"
-output_cdb = model_dir + f"{release}_SNOMED_cdb.dat"
+model_dir = os.path.join(BASE_PATH, "models", "cdb")
+output_cdb = os.path.join(model_dir, f"{release}_SNOMED_cdb.dat")
 csv = pd.read_csv(csv_path)
 
 # Remove null values
