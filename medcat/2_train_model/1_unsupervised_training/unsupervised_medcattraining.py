@@ -1,6 +1,7 @@
 from medcat.cat import CAT
 import logging
 import sys
+import os
 sys.path.append('../../../')
 from cogstack import CogStack
 from credentials import *
@@ -12,7 +13,14 @@ medcat_logger.addHandler(fh)
 ###Change parameters here###
 cogstack_indices = []  # list of cogstack indexes here
 text_columns = ['body_analysed']  # list of all text containing fields
-model_pack_path = '../../../data/medcat_models/modelpack/'
+# relative to file path
+_FILE_DIR = os.path.dirname(__file__)
+# relative path to working_with_cogstack folder
+_REL_PATH = os.path.join("..", "..", "..")
+_BASE_PATH = os.path.join(_FILE_DIR, _REL_PATH)
+# absolute path to working_with_cogstack folder
+BASE_PATH = os.path.abspath(_BASE_PATH)
+model_pack_path = os.path.join(BASE_PATH, 'data', 'medcat_models', 'modelpack')
 model_pack_name = ''
 output_modelpack_name = ''  # name of modelpack to save
 
