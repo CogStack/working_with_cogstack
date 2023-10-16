@@ -19,6 +19,8 @@ csv_path = input(f"Enter specific SNOMED pre-cdb csv found in the path {EXPECTED
 # The preprocessing files for snomed can be found here ../../../data/snomed/:
 # The default is output is ../../../data/snomed/preprocessed_snomed.csv
 release = csv_path[-12:-4]
+# doing it here so that it can later be used for CDBMaker
+csv_path = os.path.join(EXPECTED_CSV_PATH, csv_path)
 
 model_dir = os.path.join(BASE_PATH, "models", "cdb")
 output_cdb = os.path.join(model_dir, f"{release}_SNOMED_cdb.dat")
