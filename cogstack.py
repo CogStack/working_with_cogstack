@@ -73,7 +73,8 @@ class CogStack(object):
                                                     request_timeout=request_timeout)
         return docs_generator
 
-    def cogstack2df(self, query: Dict, index: str, column_headers=None, es_gen_size: int=800, request_timeout: int=300):
+    def cogstack2df(self, query: Dict, index: str, column_headers=None, es_gen_size: int=800, request_timeout: int=300,
+                    show_progress: bool = True):
         """
         Retrieve documents from an Elasticsearch index and convert them to a Pandas DataFrame.
         
@@ -83,6 +84,7 @@ class CogStack(object):
             column_headers (List[str], optional): A list of column headers to use for the DataFrame. If not provided, the DataFrame will have default column names.
             es_gen_size (int, optional): The number of documents to retrieve per batch. Defaults to 800.
             request_timeout (int, optional): The time in seconds to wait for a response from Elasticsearch before timing out. Defaults to 300.
+            show_progress (bool, optional): Whether to show the progress in console. Defaults to true.
 
         Returns:
             pandas.DataFrame: A DataFrame containing the retrieved documents.
@@ -94,7 +96,11 @@ class CogStack(object):
                                                     request_timeout=request_timeout)
         temp_results = []
         results = self.elastic.count(index=index, query=query['query'], request_timeout=300)
-        for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved..."):
+        if show_progress:
+            _tqdm = tqdm
+        else:
+            _tqdm = _no_progress_bar
+        for hit in _tqdm(docs_generator, total=results['count'], desc="CogStack retrieved..."):
             row = dict()
             row['_index'] = hit['_index']
             row['_id'] = hit['_id']
@@ -136,4 +142,8 @@ def list_chunker(user_list: List[Any], n: int) -> List[List[Any]]:
     """
     n=max(1, n)
     return [user_list[i:i+n] for i in range(0, len(user_list), n)]
+
+
+def _no_progress_bar(iterable: list, **kwargs):
+    return iterable
 
