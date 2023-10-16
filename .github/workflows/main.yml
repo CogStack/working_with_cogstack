@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11' ]
+        python-version: [ '3.8', '3.9' ] # , '3.10', '3.11' ] # TODO - add 3.10 and 3.11 if/when medcat>=1.7 is used
       max-parallel: 4
 
     steps:
