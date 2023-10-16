@@ -25,7 +25,16 @@ else:
 
 data_dir = '.' # CHANGE AS NEEDED
 
-model_dir = '../../../data/medcat_models/modelpack'
+
+# relative to file path
+_FILE_DIR = os.path.dirname(__file__)
+# relative path to working_with_cogstack folder
+_REL_PATH = os.path.join("..", "..", "..")
+_BASE_PATH = os.path.join(_FILE_DIR, _REL_PATH)
+# absolute path to working_with_cogstack folder
+BASE_PATH = os.path.abspath(_BASE_PATH)
+
+model_dir = os.path.join(BASE_PATH, "data", "medcat_models", "modelpack")
 
 modelpack = 'umls_model2_zip_0d4ccc7b9ae1ecd2.zip' # CHANGE AS NEEDED
 model_pack_path = os.path.join(model_dir, modelpack)

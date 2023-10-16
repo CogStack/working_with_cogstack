@@ -13,9 +13,13 @@ _BASE_PATH = os.path.join(_FILE_DIR, _REL_PATH)
 # absolute path to working_with_cogstack folder
 BASE_PATH = os.path.abspath(_BASE_PATH)
 
+EXPECTED_CSV_PATH = os.path.join(_REL_PATH, "data", "umls")
+
 # this is expected to be output from medcat.utils.preprocess_umls
 # i.e not the raw UMLS files
-csv_path = input("Enter specific UMLS pre-cdb csv found in the path data/umls: ")
+csv_path = input(f"Enter specific UMLS pre-cdb csv found in the path data/umls in {EXPECTED_CSV_PATH}: ")
+# doing it here so that it can later be used for CDBMaker
+csv_path = os.path.join(EXPECTED_CSV_PATH, csv_path)
 release = '2022AA' # or as appropriate
 
 if not os.path.exists('models'):
