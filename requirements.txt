@@ -1,2 +1,2 @@
 medcat==1.5.3
-numpy<1.26.0
+numpy<1.24.0
