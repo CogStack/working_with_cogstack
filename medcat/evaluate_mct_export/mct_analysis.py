@@ -147,7 +147,7 @@ class MedcatTrainer_export(object):
             return data
         return data[['user', 'count', 'date']]
 
-    def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = False):
+    def plot_user_stats(self, save_fig: bool = False, save_fig_filename: str = ''):
         """
         Plot annotator user stats against time.
         An alternative method of saving the file is: plot_user_stats().write_image("path/filename.png")
@@ -352,7 +352,7 @@ class MedcatTrainer_export(object):
         meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
         return meta_anns_df
 
-    def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: List = None):
+    def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):
         """
         :param path: Outfile path
         :param meta_ann: Include Meta_annotation evaluation in the summary as well
@@ -362,8 +362,9 @@ class MedcatTrainer_export(object):
         if concept_filter:
             with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
-                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
-                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
+                # array-like is allowed by documentation but not by typing
+                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
+                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']  # type: ignore
                 df = pd.concat([df, pd.DataFrame([['MCT Custom filter', concept_filter]], columns=df.columns)],
                                ignore_index = True)
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
@@ -390,8 +391,8 @@ class MedcatTrainer_export(object):
         else:
             with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
-                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)
-                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']
+                df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
+                df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']  # type: ignore
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
                 self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
                 #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
