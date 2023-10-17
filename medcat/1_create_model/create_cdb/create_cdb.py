@@ -41,7 +41,7 @@ csv['acronym'] = csv[~csv['description_type_ids'].str.contains("assessment scale
 print("Cleaning acronyms...")
 for i, row in csv[(~csv['acronym'].isnull()) & (csv['name_status'] == 'A')][['name', 'acronym']].iterrows():
     if row['name'][0:len(row['acronym'])] == row['acronym']:
-        csv['name'].iloc[i] = row['acronym']
+        csv['name'].iloc[i] = row['acronym']  # type: ignore
 
 print("acronyms complete")
 

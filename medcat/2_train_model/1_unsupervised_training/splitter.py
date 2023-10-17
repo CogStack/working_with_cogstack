@@ -134,8 +134,8 @@ class Splitter:
                         1, self.opts, self.split_identifier, header=line)
                     continue
                 buffer = buffer.process_or_write(line_nr, line)
-        if len(buffer.lines) > 1: # if there's more than just a header
-            buffer.save() # saver remaining
+        if buffer and len(buffer.lines) > 1:  # if there's more than just a header
+            buffer.save()  # saver remaining
 
 
 def split_file(in_file: str, nr_of_lines: int, out_file_format: str) -> None:
