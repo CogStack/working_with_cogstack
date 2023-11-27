@@ -3,7 +3,7 @@ import pandas as pd
 from medcat.config import Config
 from medcat.cdb_maker import CDBMaker
 
-pd.options.mode.chained_assignment = None
+pd.options.mode.chained_assignment = None  # type: ignore
 
 # relative to file path
 _FILE_DIR = os.path.dirname(__file__)

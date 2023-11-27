@@ -29,7 +29,7 @@ cs = CogStack(hosts=hosts, username=username, password=password, api=True)
 cogstack_indices = [''] # Enter your list of relevant cogstack indices here
 
 # log size of indices
-df = cs.DataFrame(index=cogstack_indices, columns=['body_analysed'])
+df = cs.DataFrame(index=cogstack_indices, columns=['body_analysed'])  # type: ignore
 medcat_logger.warning(f'The index size is {df.shape[0]}!')
 del df
 
@@ -44,7 +44,7 @@ snomed_filter_path = None
 
 data_dir = 'data'
 ann_folder_path = os.path.join(base_path, data_dir, f'annotated_docs')
-if not os.path.exisits(ann_folder_path):
+if not os.path.exists(ann_folder_path):
     os.makedirs(ann_folder_path)
 
 medcat_logger.warning(f'Anntotations will be saved here: {ann_folder_path}')

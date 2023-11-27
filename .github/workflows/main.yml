@@ -25,6 +25,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Typing
+        # run mypy on all tracked non-test python modules
+        # and use explicit package base since the project
+        # is not set up as a python package
+        run: |
+          python -m mypy `git ls-tree --full-tree --name-only -r HEAD | grep ".py$" | grep -v "tests/"` --explicit-package-bases --follow-imports=normal
       - name: Test
         run: |
           python -m unittest discover

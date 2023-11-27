@@ -1,5 +1,5 @@
 import getpass
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Iterable, Tuple
 import elasticsearch
 import elasticsearch.helpers
 import pandas as pd
@@ -22,7 +22,8 @@ class CogStack(object):
         password (str, optional): The password to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a password.
         api (bool, optional): A boolean value indicating whether to use API keys or basic authentication to connect to Elasticsearch. Defaults to False (i.e., use basic authentication).
     """
-    def __init__(self, hosts: List, username: str=None, password: str=None, api=False):
+    def __init__(self, hosts: List, username: Optional[str] = None, password: Optional[str] = None,
+                 api: bool = False):
 
         if api:
             api_username, api_password = self._check_auth_details(username, password)
@@ -36,7 +37,7 @@ class CogStack(object):
                                                        verify_certs=False)
 
 
-    def _check_auth_details(self, username=None, password=None):
+    def _check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
         """
         Prompt the user for a username and password if the values are not provided as function arguments.
         
@@ -53,7 +54,7 @@ class CogStack(object):
             password = getpass.getpass("Password: ")
         return username, password
 
-    def get_docs_generator(self, index: List, query: Dict, es_gen_size: int=800, request_timeout: int=300):
+    def get_docs_generator(self, index: List, query: Dict, es_gen_size: int=800, request_timeout: Optional[int] = 300):
         """
         Retrieve a generator object that can be used to iterate through documents in an Elasticsearch index.
         
@@ -95,12 +96,8 @@ class CogStack(object):
                                                     size=es_gen_size,
                                                     request_timeout=request_timeout)
         temp_results = []
-        results = self.elastic.count(index=index, query=query['query'], request_timeout=300)
-        if show_progress:
-            _tqdm = tqdm
-        else:
-            _tqdm = _no_progress_bar
-        for hit in _tqdm(docs_generator, total=results['count'], desc="CogStack retrieved..."):
+        results = self.elastic.count(index=index, query=query['query'], request_timeout=300)  # type: ignore
+        for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved...", disable=not show_progress):
             row = dict()
             row['_index'] = hit['_index']
             row['_id'] = hit['_id']
@@ -144,6 +141,6 @@ def list_chunker(user_list: List[Any], n: int) -> List[List[Any]]:
     return [user_list[i:i+n] for i in range(0, len(user_list), n)]
 
 
-def _no_progress_bar(iterable: list, **kwargs):
+def _no_progress_bar(iterable: Iterable, **kwargs):
     return iterable
 

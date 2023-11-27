@@ -3,7 +3,7 @@ import pandas as pd
 from medcat.config import Config
 from medcat.cdb_maker import CDBMaker
 
-pd.options.mode.chained_assignment = None
+pd.options.mode.chained_assignment = None  # type: ignore
 
 # relative to file path
 _FILE_DIR = os.path.dirname(__file__)
@@ -41,7 +41,7 @@ csv['acronym'] = csv[~csv['description_type_ids'].str.contains("assessment scale
 print("Cleaning acronyms...")
 for i, row in csv[(~csv['acronym'].isnull()) & (csv['name_status'] == 'A')][['name', 'acronym']].iterrows():
     if row['name'][0:len(row['acronym'])] == row['acronym']:
-        csv['name'].iloc[i] = row['acronym']
+        csv['name'].iloc[i] = row['acronym']  # type: ignore
 
 print("acronyms complete")
 
