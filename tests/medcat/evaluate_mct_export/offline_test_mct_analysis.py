@@ -18,9 +18,6 @@ from mct_analysis import MedcatTrainer_export
 
 
 MODEL_PACK_PATH = os.path.join(RESOURCE_DIR, "offline",
-                            #    "trained_model_KCH_cn_only_23_11_27.zip")
-                            #    "mc_modelpack_snomed_int_16_mar_2022_new.zip")
-                            #    "20230227__kch_gstt_trained_model_494c3717f637bb89.zip")
                                "medmen_wstatus_2021_oct.zip")
 
 
