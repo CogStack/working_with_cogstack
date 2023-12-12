@@ -62,15 +62,6 @@ class MCTExportBasicTests(BaseMCTExportTests):
         ann_df2 = self.export.annotation_df()
         self.assertTrue(all(ann_df1 == ann_df2))
 
-    # these would need a CAT instance
-    # def test_can_full_annotation_df(self):
-    #     full_ann_df = self.export.full_annotation_df()
-    #     self.assertNonEmptyDataframe(full_ann_df)
-
-    # def test_can_meta_anns_concept_summary(self):
-    #     meta_anns_summary_df = self.export.meta_anns_concept_summary()
-    #     self.assertNonEmptyDataframe(meta_anns_summary_df)
-
 
 class MCTExportUsageTests(BaseMCTExportTests):
 
