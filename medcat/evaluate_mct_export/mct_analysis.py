@@ -83,7 +83,7 @@ class MedcatTrainer_export(object):
             ann_lst.append(output)
         return ann_lst
 
-    def _load_mct_exports(self, list_of_paths_to_mct_exports: list[str]) -> dict:
+    def _load_mct_exports(self, list_of_paths_to_mct_exports: List[str]) -> dict:
         """
         Loads a list of multiple MCT exports
         :param list_of_paths_to_mct_exports: list of mct exports
