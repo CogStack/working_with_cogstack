@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Dict, Iterator, Tuple, Optional
+from typing import List, Dict, Iterator, Tuple, Optional, Union
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
@@ -39,8 +39,8 @@ class MedcatTrainer_export(object):
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(self.mct_export_paths)
-        self.project_names = []
-        self.document_names = []
+        self.project_names: List[str] = []
+        self.document_names: List[str] = []
         self.annotations = self._annotations()
         self.model_pack_path = model_pack_path
         if model_pack_path is not None:
@@ -104,7 +104,7 @@ class MedcatTrainer_export(object):
         annotation_df = pd.DataFrame(self.annotations)
         if self.cat:
             annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(self.cat.cdb.cui2preferred_name))
-        exceptions = []
+        exceptions: List[ValueError] = []
         # try the default format as well as the format specified above
         for format in [None, DATETIME_FORMAT]:
             try:
@@ -166,7 +166,7 @@ class MedcatTrainer_export(object):
         data = df.groupby([df['last_modified'].dt.year.rename('year'),
                            df['last_modified'].dt.month.rename('month'),
                            df['last_modified'].dt.day.rename('day'),
-                           df['user']]).agg({'count'})
+                           df['user']]).agg({'count'})  # type: ignore
         data = pd.DataFrame(data)
         data.columns = data.columns.droplevel()
         data = data.reset_index(drop=False)
@@ -330,7 +330,7 @@ class MedcatTrainer_export(object):
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
-        if not self.cat:
+        if not self.cat or not self.model_pack_path:  # moslty for typing so flake8 knows it's not None down below
             raise ValueError("No model pack specified")
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
@@ -367,7 +367,7 @@ class MedcatTrainer_export(object):
                 meta_task = meta_model_card['Category Name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
-                meta_value_results = {}
+                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
                 for meta_value in meta_model_card['Classes'].keys():
                     total = 0
                     fp = 0
