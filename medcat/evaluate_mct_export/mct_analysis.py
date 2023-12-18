@@ -10,7 +10,7 @@ from torch import nn
 import numpy as np
 import pandas as pd
 from collections import Counter
-from typing import List, Optional, Tuple, Any, Dict
+from typing import List, Dict, Iterator, Tuple, Optional, Union
 from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
 
 from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
@@ -21,50 +21,69 @@ from medcat.utils.meta_cat.data_utils import prepare_from_json, encode_category_
 import warnings
 
 
+DATETIME_FORMAT = r"%Y-%m-%d:%H:%M:%S"
+
+
 class MedcatTrainer_export(object):
     """
     Class to analyse MedCATtrainer exports
     """
 
-    def __init__(self, mct_export_paths, model_pack_path=None):
+    def __init__(self, mct_export_paths: List[str], model_pack_path: Optional[str] = None):
         """
         :param mct_export_paths: List of paths to MedCATtrainer exports
         :param model_pack_path: Path to medcat modelpack
         """
-        self.cat = None
+        self.cat: Optional[CAT] = None
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(self.mct_export_paths)
-        self.project_names = []
-        self.document_names = []
+        self.project_names: List[str] = []
+        self.document_names: List[str] = []
         self.annotations = self._annotations()
         self.model_pack_path = model_pack_path
         if model_pack_path is not None:
             if model_pack_path[-4:] == '.zip':
                 self.model_pack_path = model_pack_path[:-4]
-        
-    def _annotations(self):
-        ann_lst = []
+
+    def _iter_docs(self, add_proj_names: bool = True) -> Iterator[Tuple[str, dict]]:
         for proj in self.mct_export['projects']:
-            self.project_names.append(proj)
+            if add_proj_names:
+                self.project_names.append(proj['name'])
             for doc in proj['documents']:
+                yield proj['name'], doc
+
+    def _iter_anns(self, add_doc_names: bool = True,
+                   add_proj_names: bool = True) -> Iterator[Tuple[str, str, dict]]:
+        for proj_name, doc in self._iter_docs(add_proj_names):
+            if add_doc_names:
                 self.document_names.append(doc['name'])
-                for anns in doc['annotations']:
-                    meta_anns_dict = dict()
-                    for meta_ann in anns['meta_anns'].items():
-                        meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
-                    _anns = anns.copy()
-                    _anns.pop('meta_anns')
-                    output = dict()
-                    output['project'] = proj['name']
-                    output['document_name'] = doc['name']
-                    output.update(_anns)
-                    output.update(meta_anns_dict)
-                    ann_lst.append(output)
+            for ann in doc['annotations']:
+                yield proj_name, doc['name'], ann
+
+    def _annotations(self) -> List[dict]:
+        ann_lst = []
+        # reset project and document names
+        # in case of a second time calling _annotations()
+        # i.e if/when renaming meta annotations
+        self.project_names.clear()
+        self.document_names.clear()
+        for proj_name, doc_name, ann in self._iter_anns():
+            meta_anns_dict = dict()
+            for meta_ann in ann['meta_anns'].items():
+                meta_anns_dict.update({meta_ann[0]: meta_ann[1]['value']})
+            _anns = ann.copy()
+            _anns.pop('meta_anns')
+            output = dict()
+            output['project'] = proj_name
+            output['document_name'] = doc_name
+            output.update(_anns)
+            output.update(meta_anns_dict)
+            ann_lst.append(output)
         return ann_lst
 
-    def _load_mct_exports(self, list_of_paths_to_mct_exports):
+    def _load_mct_exports(self, list_of_paths_to_mct_exports: List[str]) -> dict:
         """
         Loads a list of multiple MCT exports
         :param list_of_paths_to_mct_exports: list of mct exports
@@ -77,7 +96,7 @@ class MedcatTrainer_export(object):
         mct_proj_exports = {'projects': mct_projects}
         return mct_proj_exports
 
-    def annotation_df(self):
+    def annotation_df(self) -> pd.DataFrame:
         """
         DataFrame of all annotations created
         :return: DataFrame
@@ -85,10 +104,21 @@ class MedcatTrainer_export(object):
         annotation_df = pd.DataFrame(self.annotations)
         if self.cat:
             annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(self.cat.cdb.cui2preferred_name))
-        annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified']).dt.tz_localize(None)
+        exceptions: List[ValueError] = []
+        # try the default format as well as the format specified above
+        for format in [None, DATETIME_FORMAT]:
+            try:
+                annotation_df['last_modified'] = pd.to_datetime(annotation_df['last_modified'], format=format).dt.tz_localize(None)
+                exceptions.clear()
+                break
+            except ValueError as e:
+                exceptions.append(e)
+        if exceptions:
+            # if there's issues
+            raise ValueError(*exceptions)
         return annotation_df
 
-    def concept_summary(self, extra_cui_filter=None):
+    def concept_summary(self, extra_cui_filter: Optional[str] = None) -> pd.DataFrame:
         """
         Summary of only correctly annotated concepts from a mct export
         :return: DataFrame summary of annotations.
@@ -122,10 +152,10 @@ class MedcatTrainer_export(object):
                                 'fn': 'fn_examples',
                                 'tp': 'tp_examples'})
             concept_count_df = concept_count_df.merge(examples_df, how='left', on='cui')
-            
+
         return concept_count_df
 
-    def user_stats(self, by_user: bool = True):
+    def user_stats(self, by_user: bool = True) -> pd.DataFrame:
         """
         Summary of user annotation work done
 
@@ -136,7 +166,7 @@ class MedcatTrainer_export(object):
         data = df.groupby([df['last_modified'].dt.year.rename('year'),
                            df['last_modified'].dt.month.rename('month'),
                            df['last_modified'].dt.day.rename('day'),
-                           df['user']]).agg({'count'})
+                           df['user']]).agg({'count'})  # type: ignore
         data = pd.DataFrame(data)
         data.columns = data.columns.droplevel()
         data = data.reset_index(drop=False)
@@ -175,29 +205,50 @@ class MedcatTrainer_export(object):
             plotly.offline.plot(fig, filename=filename)
             print(f'The figure was saved at: {filename}')
         return fig
-    
-    def rename_meta_anns(self, meta_anns2rename=dict(), meta_ann_values2rename=dict()):
-        """
+
+    def _rename_meta_ann_values(self, meta_anns: dict, name_replacement: str,
+                                meta_ann_name: str, meta_values: list,
+                                meta_ann_values2rename: dict):
+        if meta_anns[name_replacement]['name'] == meta_ann_name:
+            for value in meta_values:
+                if meta_anns[name_replacement]['value'] == value:
+                    meta_anns[name_replacement]['value'] = meta_ann_values2rename[meta_ann_name][value]
+
+    def _rename_meta_ann_for_name(self, meta_anns: dict, name2replace: str, name_replacement: str,
+                                  meta_ann_values2rename: dict):
+        meta_anns[name_replacement] = meta_anns.pop(name2replace)
+        meta_anns[name_replacement]['name'] = name_replacement
+        for meta_ann_name, meta_values in meta_ann_values2rename.items():
+            self._rename_meta_ann_values(meta_anns, name_replacement, meta_ann_name, meta_values,
+                                         meta_ann_values2rename)
+
+    def _rename_meta_ann(self, meta_anns: dict,
+                         meta_anns2rename=dict(), meta_ann_values2rename=dict()):
+        for meta_name2replace in meta_anns2rename:
+            try:
+                self._rename_meta_ann_for_name(meta_anns, meta_name2replace,
+                                               meta_anns2rename[meta_name2replace],
+                                               meta_ann_values2rename)
+            except KeyError:
+                pass
+
+    def rename_meta_anns(self, meta_anns2rename: dict = dict(), meta_ann_values2rename: dict = dict()):
+        """Rename the names and/or values of meta annotations.
+
+        PS!
+        The renaming of values is currently only supported if renaming names as well.
+        If you want to rename the values but keep the names, it would be suggested
+        to have the `meta_anns2rename` a dict mappign the names to themselves.
+
         TODO: the meta_ann_values2rename has issues
         :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
         """
-        for proj in self.mct_export['projects']:
-            for doc in proj['documents']:
-                for anns in doc['annotations']:
-                    if len(anns['meta_anns']) > 0:
-                        for meta_name2replace in meta_anns2rename:
-                            try:
-                                anns['meta_anns'][meta_anns2rename[meta_name2replace]] = anns['meta_anns'].pop(meta_name2replace)
-                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] = meta_anns2rename[meta_name2replace]
-                                for meta_ann_name, meta_values in meta_ann_values2rename.items():
-                                    if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['name'] == meta_ann_name:
-                                        for value in meta_values:
-                                            if anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] == value:
-                                                anns['meta_anns'][meta_anns2rename[meta_name2replace]]['value'] = meta_ann_values2rename[meta_ann_name][value]
-                            except KeyError:
-                                pass
+        for _, _, ann in self._iter_anns(False, False):
+            meta_anns = ann['meta_anns']
+            if len(meta_anns) > 0:
+                self._rename_meta_ann(meta_anns, meta_anns2rename, meta_ann_values2rename)
         self.annotations = self._annotations()
         return
 
@@ -238,7 +289,7 @@ class MedcatTrainer_export(object):
         predictions = np.argmax(np.concatenate(all_logits, axis=0), axis=1)
         return predictions
 
-    def _eval(self, metacat_model, mct_export):
+    def _eval(self, metacat_model, mct_export) -> dict:
         g_config = metacat_model.config.general
         t_config = metacat_model.config.train
         t_config['test_size'] = 0
@@ -272,13 +323,15 @@ class MedcatTrainer_export(object):
 
         return {'predictions': result, 'meta_values': _}
 
-    def full_annotation_df(self):
+    def full_annotation_df(self) -> pd.DataFrame:
         """
         DataFrame of all annotations created including meta_annotation predictions.
         This function is similar to annotation_df with the addition of Meta_annotation predictions from the medcat model.
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
+        if not self.cat or not self.model_pack_path:  # moslty for typing so flake8 knows it's not None down below
+            raise ValueError("No model pack specified")
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
                           & (anns_df['irrelevant'] != True)]
@@ -302,7 +355,9 @@ class MedcatTrainer_export(object):
 
         return meta_df
 
-    def meta_anns_concept_summary(self):
+    def meta_anns_concept_summary(self) -> pd.DataFrame:
+        if not self.cat:
+            raise ValueError("No model pack specified")
         meta_df = self.full_annotation_df()
         meta_performance = {}
         for cui in meta_df.cui.unique():
@@ -312,7 +367,7 @@ class MedcatTrainer_export(object):
                 meta_task = meta_model_card['Category Name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
-                meta_value_results = {}
+                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
                 for meta_value in meta_model_card['Classes'].keys():
                     total = 0
                     fp = 0
@@ -359,6 +414,8 @@ class MedcatTrainer_export(object):
         :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
         :return: An full excel report for MedCATtrainer annotation work done.
         """
+        if not self.cat:
+            raise ValueError("No model pack specified")
         if concept_filter:
             with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
                 print('Generating report...')
