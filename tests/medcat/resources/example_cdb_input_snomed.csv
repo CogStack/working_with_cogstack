@@ -1,0 +1,100 @@
+cui,name,name_status,ontologies,description_type_ids,type_ids
+101009,Quilonia ethiopica (organism),P,SNOMED-CT,organism,81102976
+102002,Hemoglobin Okaloosa (substance),P,SNOMED-CT,substance,91187746
+103007,Squirrel fibroma virus (organism),P,SNOMED-CT,organism,81102976
+104001,Excision of lesion of patella (procedure),P,SNOMED-CT,procedure,28321150
+106004,Structure of posterior carpal region (body structure),P,SNOMED-CT,body structure,37552161
+107008,Structure of fetal part of placenta (body structure),P,SNOMED-CT,body structure,37552161
+108003,Entire condylar emissary vein (body structure),P,SNOMED-CT,body structure,37552161
+109006,Anxiety disorder of childhood OR adolescence (disorder),P,SNOMED-CT,disorder,9090192
+110001,Structure of visceral layer of Bowman's capsule (body structure),P,SNOMED-CT,body structure,37552161
+111002,Parathyroid structure (body structure),P,SNOMED-CT,body structure,37552161
+112009,Bembrops anatirostris (organism),P,SNOMED-CT,organism,81102976
+113004,Type-casting-machine operator (occupation),P,SNOMED-CT,occupation,16939031
+114005,Feline calicivirus (organism),P,SNOMED-CT,organism,81102976
+115006,Removable appliance therapy (procedure),P,SNOMED-CT,procedure,28321150
+116007,Subcutaneous tissue structure of medial surface of index finger (body structure),P,SNOMED-CT,body structure,37552161
+117003,Rhipicephalus sanguineus (organism),P,SNOMED-CT,organism,81102976
+118008,Black buffalo weaver (organism),P,SNOMED-CT,organism,81102976
+119000,Thoracoscopic partial lobectomy of lung (procedure),P,SNOMED-CT,procedure,28321150
+120006,Ornithine racemase (substance),P,SNOMED-CT,substance,91187746
+122003,Choroidal hemorrhage (disorder),P,SNOMED-CT,disorder,9090192
+124002,Structure of coronoid process of mandible (body structure),P,SNOMED-CT,body structure,37552161
+125001,Ferrous (59-Fe) sulfate (substance),P,SNOMED-CT,substance,91187746
+126000,Galactosyl-N-acetylglucosaminylgalactosylglucosylceramide alpha-galactosyltransferase (substance),P,SNOMED-CT,substance,91187746
+127009,Miscarriage with laceration of cervix (disorder),P,SNOMED-CT,disorder,9090192
+128004,Hand microscope examination of skin (procedure),P,SNOMED-CT,procedure,28321150
+129007,Homoiothermia (finding),P,SNOMED-CT,finding,67667581
+130002,Hemoglobin Hopkins-II (substance),P,SNOMED-CT,substance,91187746
+131003,Dolichyl-phosphate mannosyltransferase (substance),P,SNOMED-CT,substance,91187746
+132005,Serraniculus pumilio (organism),P,SNOMED-CT,organism,81102976
+133000,Percutaneous implantation of neurostimulator electrodes into neuromuscular component (procedure),P,SNOMED-CT,procedure,28321150
+134006,Decreased hair growth (finding),P,SNOMED-CT,finding,67667581
+135007,Arthrotomy of wrist joint with exploration and biopsy (procedure),P,SNOMED-CT,procedure,28321150
+136008,Acacia erioloba (organism),P,SNOMED-CT,organism,81102976
+138009,No past history of (contextual qualifier) (qualifier value),P,SNOMED-CT,qualifier value,7882689
+139001,Felid herpesvirus 1 (organism),P,SNOMED-CT,organism,81102976
+140004,Chronic pharyngitis (disorder),P,SNOMED-CT,disorder,9090192
+142007,"Excision of tumor from shoulder area, deep, intramuscular (procedure)",P,SNOMED-CT,procedure,28321150
+144008,Normal peripheral vision (finding),P,SNOMED-CT,finding,67667581
+145009,Colloid milium (morphologic abnormality),P,SNOMED-CT,morphologic abnormality,33782986
+146005,Repair of nonunion of metatarsal with bone graft (procedure),P,SNOMED-CT,procedure,28321150
+148006,Preliminary diagnosis (contextual qualifier) (qualifier value),P,SNOMED-CT,qualifier value,7882689
+149003,"Central pair of microtubules, cilium or flagellum, not bacterial (cell structure)",P,SNOMED-CT,cell structure,66527446
+150003,Abnormal bladder continence (finding),P,SNOMED-CT,finding,67667581
+151004,Gonococcal meningitis (disorder),P,SNOMED-CT,disorder,9090192
+153001,Cystourethroscopy with resection of ureterocele (procedure),P,SNOMED-CT,procedure,28321150
+154007,Rubber molding-press operator (occupation),P,SNOMED-CT,occupation,16939031
+155008,Structure of deep circumflex iliac artery (body structure),P,SNOMED-CT,body structure,37552161
+156009,"Spine board, device (physical object)",P,SNOMED-CT,physical object,32816260
+158005,Salmonella Irumu (organism),P,SNOMED-CT,organism,81102976
+159002,Ferrocyanide salt (substance),P,SNOMED-CT,substance,91187746
+160007,Removal of foreign body of tendon and/or tendon sheath (procedure),P,SNOMED-CT,procedure,28321150
+161006,Thermal injury (morphologic abnormality),P,SNOMED-CT,morphologic abnormality,33782986
+162004,Severe manic bipolar I disorder without psychotic features (disorder),P,SNOMED-CT,disorder,9090192
+163009,Bacteroides stercoris (organism),P,SNOMED-CT,organism,81102976
+164003,Phosphoenolpyruvate-protein phosphotransferase (substance),P,SNOMED-CT,substance,91187746
+165002,Accident prone (finding),P,SNOMED-CT,finding,67667581
+166001,Behavioral therapy (regime/therapy),P,SNOMED-CT,regime/therapy,47503797
+167005,Structure of supraclavicular part of brachial plexus (body structure),P,SNOMED-CT,body structure,37552161
+168000,Typhlolithiasis (disorder),P,SNOMED-CT,disorder,9090192
+169008,Product containing hypothalamic releasing factor (product),P,SNOMED-CT,product,91776366
+170009,"Special potency disk identification, vancomycin test (procedure)",P,SNOMED-CT,procedure,28321150
+171008,Injury of ascending right colon without open wound into abdominal cavity (disorder),P,SNOMED-CT,disorder,9090192
+172001,Endometritis following molar AND/OR ectopic pregnancy (disorder),P,SNOMED-CT,disorder,9090192
+173006,Micrognathus crinitus (organism),P,SNOMED-CT,organism,81102976
+174000,Harrison-Richardson operation on vagina (procedure),P,SNOMED-CT,procedure,28321150
+175004,Supraorbital neuralgia (finding),P,SNOMED-CT,finding,67667581
+176003,Anastomosis of rectum (procedure),P,SNOMED-CT,procedure,28321150
+177007,Poisoning by sawfly larvae (disorder),P,SNOMED-CT,disorder,9090192
+178002,Uridine diphosphate galactose (substance),P,SNOMED-CT,substance,91187746
+179005,Apraxia of dressing (finding),P,SNOMED-CT,finding,67667581
+180008,Genus Fijivirus (organism),P,SNOMED-CT,organism,81102976
+181007,Hemorrhagic bronchopneumonia (disorder),P,SNOMED-CT,disorder,9090192
+182000,Canalization (morphologic abnormality),P,SNOMED-CT,morphologic abnormality,33782986
+183005,Autoimmune pancytopenia (disorder),P,SNOMED-CT,disorder,9090192
+184004,Withdrawal arrhythmia (disorder),P,SNOMED-CT,disorder,9090192
+186002,Human leukocyte antigen Cw9 (substance),P,SNOMED-CT,substance,91187746
+187006,Cyanocobalamin (57-Co) (substance),P,SNOMED-CT,substance,91187746
+188001,Injury of intercostal artery (disorder),P,SNOMED-CT,disorder,9090192
+189009,Excision of lesion of artery (procedure),P,SNOMED-CT,procedure,28321150
+191001,Lednice virus (organism),P,SNOMED-CT,organism,81102976
+192008,Congenital syphilitic hepatomegaly (disorder),P,SNOMED-CT,disorder,9090192
+193003,Benign hypertensive renal disease (disorder),P,SNOMED-CT,disorder,9090192
+194009,Notropis whipplei (organism),P,SNOMED-CT,organism,81102976
+196006,Concave shape (qualifier value),P,SNOMED-CT,qualifier value,7882689
+197002,Mold to yeast conversion test (procedure),P,SNOMED-CT,procedure,28321150
+198007,Disease caused by Filoviridae (disorder),P,SNOMED-CT,disorder,9090192
+199004,Decreased lactation (finding),P,SNOMED-CT,finding,67667581
+200001,Berberine (substance),P,SNOMED-CT,substance,91187746
+201002,Oligopus claudei (organism),P,SNOMED-CT,organism,81102976
+202009,Structure of anterior division of renal artery (body structure),P,SNOMED-CT,body structure,37552161
+205006,Entire left commissure of aortic valve (body structure),P,SNOMED-CT,body structure,37552161
+206007,Structure of gluteus maximus muscle (body structure),P,SNOMED-CT,body structure,37552161
+207003,European edible frog (organism),P,SNOMED-CT,organism,81102976
+209000,Plover (organism),P,SNOMED-CT,organism,81102976
+210005,"Arrow, device (physical object)",P,SNOMED-CT,physical object,32816260
+211009,Product containing norethandrolone (medicinal product),P,SNOMED-CT,medicinal product,37785117
+213007,Simian enterovirus 7 (organism),P,SNOMED-CT,organism,81102976
+214001,Streptococcus mutans (organism),P,SNOMED-CT,organism,81102976
+216004,Delusion of persecution (finding),P,SNOMED-CT,finding,67667581
