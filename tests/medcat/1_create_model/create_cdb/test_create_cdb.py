@@ -50,7 +50,7 @@ class CreateCDBTest(unittest.TestCase):
         self.output_cdb = create_cdb.output_cdb
         self.assertHasCDB(self.output_cdb)
 
-    def test_umlc_cdb_creation(self):
+    def test_umls_cdb_creation(self):
         with patch('builtins.input', side_effect=get_mock_input(PRE_CDB_CSV_PATH_UMLS)):
             import create_umls_cdb
         self.output_cdb = create_umls_cdb.output_cdb
