@@ -139,6 +139,17 @@ class Splitter:
 
 
 def split_file(in_file: str, nr_of_lines: int, out_file_format: str) -> None:
+    """Splits a file into multiple files of the specified number of lines (or close to it).
+
+    PS! This splitting is currently only designed for a narrow type of CSV files.
+        This was created to split the MIMIC-III notes into parts. It may work with
+        later MIMIC releases but is unlikely to work for other datasets.
+
+    Args:
+        in_file (str): _description_
+        nr_of_lines (int): _description_
+        out_file_format (str): _description_
+    """
     opts = SplitOptions(lines_at_a_time=nr_of_lines,
                         out_file_format=out_file_format)
     split_identifier = SplitIdentifier()
