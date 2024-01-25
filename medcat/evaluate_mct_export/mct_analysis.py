@@ -240,7 +240,6 @@ class MedcatTrainer_export(object):
         If you want to rename the values but keep the names, it would be suggested
         to have the `meta_anns2rename` a dict mappign the names to themselves.
 
-        TODO: the meta_ann_values2rename has issues
         :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
