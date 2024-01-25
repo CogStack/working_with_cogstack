@@ -245,6 +245,11 @@ class MedcatTrainer_export(object):
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
         """
+        # if we want to rename the values, but haven't specified any names to rename
+        # we need to use a names dict to map the names to themselves due to the way
+        # the current implementation works
+        if meta_ann_values2rename and not meta_anns2rename:
+            meta_anns2rename = dict((name, name) for name in meta_ann_values2rename)
         for _, _, ann in self._iter_anns(False, False):
             meta_anns = ann['meta_anns']
             if len(meta_anns) > 0:
