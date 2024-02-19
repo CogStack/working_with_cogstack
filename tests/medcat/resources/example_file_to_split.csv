@@ -1,0 +1,125 @@
+"subject_id","hadm_id","chartdate","charttime","text","category","description"
+12345,67890,"2024-01-18","12:30:00","EPR:
+Patient, a 55-year-old male, was admitted with complaints of severe chest pain radiating to the left arm and associated shortness of breath.
+On examination, the patient appeared diaphoretic with blood pressure elevated at 160/90 mmHg, heart rate of 110 beats per minute, and respiratory rate of 22 breaths per minute.
+Initial ECG revealed sinus tachycardia with ST-segment elevation in leads II, III, and aVF. Troponin levels were elevated, suggestive of acute myocardial infarction.
+The patient was promptly started on aspirin, clopidogrel, and intravenous nitroglycerin. Cardiology consultation requested for further management and possible catheterization.
+","Admission Note","Acute Myocardial Infarction"
+56789,54321,"2024-01-18","08:45:00","EPR:
+Follow-up note for a 65-year-old female with a history of type 2 diabetes mellitus.
+Blood glucose levels have been well-controlled with recent HbA1c within the target range.
+Medication reconciliation performed, and adjustments made to the insulin regimen to optimize glycemic control.
+Patient educated on the importance of regular blood glucose monitoring, proper diet, and exercise.
+Follow-up appointment scheduled in 3 months for continued management.
+","Follow-up Note","Diabetes Mellitus Management"
+98765,43210,"2024-01-18","15:20:00","EPR:
+Emergency department note for a 40-year-old male involved in a motor vehicle accident.
+The patient was brought in by ambulance with complaints of severe right leg pain.
+Physical examination revealed tenderness and swelling over the right femur.
+CT scan of the pelvis and femur confirmed a displaced fracture of the right femoral shaft.
+Orthopedic surgery consulted for further evaluation and management.
+The patient was given analgesia and placed in traction pending surgical intervention.
+","Emergency Note","Trauma and Fracture Evaluation"
+23456,78901,"2024-01-18","10:10:00","EPR:
+Psychiatric evaluation for a 30-year-old female presenting with symptoms of depression.
+The patient reports a persistent low mood, loss of interest in activities, poor appetite, and difficulty sleeping.
+No significant suicidal ideation reported.
+Past psychiatric history includes a previous episode of major depressive disorder.
+Started the patient on sertraline and provided psychoeducation on coping strategies.
+Referral made to a therapist for ongoing support.
+","Psychiatric Note","Major Depressive Disorder"
+87654,21098,"2024-01-18","14:00:00","EPR:
+Consultation note for a 25-year-old male admitted with severe right lower quadrant abdominal pain.
+Physical examination consistent with suspected appendicitis.
+Laboratory results showed an elevated white blood cell count.
+CT abdomen and pelvis ordered, revealing acute appendicitis with localized abscess formation.
+The patient placed on NPO status, started on broad-spectrum antibiotics, and surgical intervention scheduled for appendectomy.","Consultation Note","Appendicitis Evaluation and Management"
+34567,87654,"2024-01-19","09:15:00","EPR:
+Admission note for a 45-year-old female presenting with acute respiratory distress.
+History reveals a recent upper respiratory tract infection.
+On examination, the patient is tachypneic with bilateral crackles on auscultation.
+Chest X-ray shows diffuse infiltrates consistent with viral pneumonia.
+Oxygen supplementation initiated, and antiviral therapy prescribed.
+Close monitoring for respiratory status ongoing.
+","Admission Note","Viral Pneumonia"
+78901,23456,"2024-01-19","13:45:00","EPR:
+Follow-up note for a 60-year-old male with a history of hypertension.
+Blood pressure well-controlled on current medication regimen.
+Discussion on lifestyle modifications, including a low-sodium diet and regular exercise.
+Patient advised on the importance of regular follow-up appointments for ongoing blood pressure management.
+","Follow-up Note","Hypertension Management"
+21098,65432,"2024-01-19","16:30:00","EPR:
+Emergency department note for a 35-year-old female involved in a fall from a height.
+Complaints of back pain and numbness in both lower extremities.
+Neurological examination indicates sensory deficits.
+CT spine ordered, revealing a thoracic spine fracture.
+Neurosurgery consultation requested for further evaluation and management.
+","Emergency Note","Traumatic Spinal Injury"
+54321,78909,"2024-01-19","11:00:00","EPR:
+Psychiatric evaluation for a 28-year-old male with symptoms of anxiety and panic attacks.
+The patient reports palpitations, sweating, and a sense of impending doom during episodes.
+No significant past psychiatric history.
+Started on selective serotonin reuptake inhibitors (SSRIs) and referred for cognitive-behavioral therapy.
+","Psychiatric Note","Generalized Anxiety Disorder"
+67890,12345,"2024-01-19","14:20:00","EPR:
+Consultation note for a 50-year-old female with abdominal pain and distension.
+Physical examination consistent with ascites.
+Paracentesis performed, revealing elevated white cell count and protein levels.
+Further workup initiated for the underlying cause of ascites.
+Gastroenterology consultation requested for comprehensive evaluation.
+","Consultation Note","Ascites Evaluation"
+12312,67845,"2024-01-20","10:45:00","EPR:
+Admission note for a 22-year-old male presenting with a seizure episode.
+No prior history of seizures reported. Neurological examination unremarkable.
+CT scan of the brain performed, showing no acute abnormalities.
+The patient started on antiepileptic medication, and an electroencephalogram (EEG) scheduled for further evaluation.
+","Admission Note","First Seizure Evaluation"
+45678,34567,"2024-01-20","14:15:00","EPR:
+Follow-up note for a 70-year-old female with a history of congestive heart failure.
+Recent exacerbation managed with diuretic adjustment and oxygen therapy.
+Patient educated on sodium restriction and fluid management.
+Close outpatient follow-up scheduled to monitor symptoms and optimize heart failure management.
+","Follow-up Note","Congestive Heart Failure Management"
+78909,45678,"2024-01-20","16:50:00","EPR:
+Emergency department note for a 40-year-old male with a laceration to the right hand from a work-related injury.
+Wound cleaned and sutured. Tetanus prophylaxis administered.
+Occupational health referral made for further assessment and follow-up.
+","Emergency Note","Hand Laceration Management"
+23456,56789,"2024-01-20","12:30:00","EPR:
+Psychiatric evaluation for a 25-year-old female presenting with symptoms of post-traumatic stress disorder (PTSD) following a recent traumatic event.
+The patient experiences intrusive thoughts and nightmares.
+Started on a selective serotonin-norepinephrine reuptake inhibitor (SNRI) and referred for trauma-focused therapy.
+","Psychiatric Note","Post-Traumatic Stress Disorder"
+67890,89012,"2024-01-20","09:00:00","EPR:
+Consultation note for a 55-year-old male with persistent epigastric pain.
+Upper endoscopy performed, revealing erosive gastritis.
+Proton pump inhibitor prescribed, and lifestyle modifications discussed.
+Gastroenterology follow-up recommended for ongoing management.
+","Consultation Note","Gastritis Evaluation and Management"
+54321,98765,"2024-01-21","11:30:00","EPR:
+Admission note for a 38-year-old female presenting with a mysterious neurological syndrome.
+The patient experiences sudden and transient episodes of total paralysis, lasting a few minutes.
+Extensive neurological workup initiated, including genetic testing for a rare hereditary paralysis disorder.
+Neurology and genetics consultations requested for further evaluation.
+","Admission Note","Familial Transient Paralysis Syndrome"
+87654,23456,"2024-01-21","14:20:00","EPR:
+Follow-up note for a 45-year-old male with a history of unexplained fevers and skin lesions resembling butterfly wings.
+Extensive infectious disease and rheumatological workup inconclusive.
+Immunology and dermatology consultations ongoing to explore the possibility of a novel autoimmune disorder.
+","Follow-up Note","Butterfly Wing Syndrome"
+21098,76543,"2024-01-21","09:45:00","EPR:
+Emergency department note for a 28-year-old male presenting with acute respiratory distress and bizarre neuropsychiatric symptoms.
+Preliminary investigations inconclusive.
+Suspected rare autoimmune encephalitis with respiratory involvement.
+Immunotherapy initiated, and neurology and pulmonology consulted for collaborative management.
+","Emergency Note","Autoimmune Encephalitis with Respiratory Distress"
+67890,32109,"2024-01-21","16:10:00","EPR:
+Psychiatric evaluation for a 32-year-old female with sudden-onset obsessive-compulsive behaviors, including a compulsion to count objects in prime numbers.
+No history of psychiatric illness.
+Neurology and psychiatry consultations in progress for consideration of a rare neurodevelopmental disorder.
+","Psychiatric Note","Prime Number Obsessive-Compulsive Disorder"
+12345,65432,"2024-01-21","13:00:00","EPR:
+Consultation note for a 50-year-old male with chronic abdominal pain and gastrointestinal bleeding. 
+nitial investigations inconclusive.
+Gastroenterology and hematology consulted for further evaluation of a suspected rare vascular malformation disorder affecting the gastrointestinal tract.
+","Consultation Note","Gastrointestinal Vascular Malformation Syndrome"
