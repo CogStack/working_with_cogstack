@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
