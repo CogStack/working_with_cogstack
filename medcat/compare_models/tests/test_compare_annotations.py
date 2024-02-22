@@ -3,6 +3,49 @@ import compare_annotations
 import unittest
 
 
+class ResultsTallyTests(unittest.TestCase):
+    common = {"type_ids": ["T1"], "detected_name": "NOT IMPORTANT", 'acc': 1.0}
+    cui2name = {"C1": "Concept 1",
+                "C2": "Concept 2"}
+    entities = [ {"entities":
+                   {"0": {"start": 10, "end": 15, "cui": "C1"},
+                    "1": {"start": 20, "end": 35, "cui": "C2"}}},
+                  {"entities":
+                   {"0": {"start": 5, "end": 15, "cui": "C2"},
+                    "1": {"start": 25, "end": 30, "cui": "C1"}}}
+                ]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        for doc in cls.entities:
+            for ent in doc['entities'].values():
+                ent.update(cls.common)
+
+    def _cui2name(self, cui: str) -> str:
+        return self.cui2name[cui]
+
+    def setUp(self) -> None:
+        self.res = compare_annotations.ResultsTally(cat_data={"stats": "don't matter"},
+                                               cui2name=self._cui2name)
+        for entities in self.entities:
+            self.res.count(entities)
+
+    def test_filter_works(self, cuis = {"C1"}):
+        self.res.filter_cuis(cuis)
+        for cui in cuis:
+            with self.subTest(cui):
+                self.assertIn(cui, self.res.per_cui_count)
+        for cui in self.cui2name:
+            if cui in cuis:
+                continue
+            with self.subTest(cui):
+                per_cui = self.res.get_for_cui(cui)
+                per_cui_values = set(per_cui.values())
+                self.assertEqual(len(per_cui_values), len(self.cui2name) - 1)
+                self.assertEqual(per_cui_values, {"N/A"})
+        self.assertEqual(set(self.res.per_cui_count), cuis)
+
+
 class EntityOverlapIdenticalTests(unittest.TestCase):
 
     def test_identical_overlap(self, start=10, end=15):

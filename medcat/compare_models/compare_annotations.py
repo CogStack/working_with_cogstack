@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set, Callable, Optional
+from typing import List, Tuple, Dict, Set, Callable, Optional, Union
 
 from pydantic import BaseModel
 from enum import Enum, auto
@@ -59,6 +59,23 @@ class ResultsTally(BaseModel):
                 "acc": self.per_cui_acc[cui],
                 "forms": len(self.per_cui_forms[cui])}
 
+    def _remove_cui(self, cui: str) -> None:
+        # TODO - this could potentially use all fields that start with `per_cui`
+        cnt = self.per_cui_count[cui]
+        self.total_count -= cnt
+        del self.per_cui_count[cui]
+        del self.per_cui_acc[cui]
+        del self.per_cui_forms[cui]
+
+    def filter_cuis(self, cuis: Union[Set[str], List[str]]) -> None:
+        """Filter the results to only include the CUIs specified.
+
+        Args:
+            cuis (Union[Set[str], List[str]]): The CUIs to include.
+        """
+        for cui in list(self.per_cui_count):
+            if cui not in cuis:
+                self._remove_cui(cui)
 
 def _check_overlap_internal(start1: int, end1: int, start2: int, end2: int) -> bool:
     if end1 < start2:
