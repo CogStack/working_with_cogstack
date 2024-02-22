@@ -77,7 +77,7 @@ def show_dict_deep(d: dict, path: str = '',
         if isinstance(value, dict):
             show_dict_deep(value, path=total_path)
             continue
-        print(output_formatter(total_path,value))
+        print(output_formatter(total_path, value, None))
     # for paired keys
     for key1, key2 in key_pairs:
         common_key = key1[:-1]
@@ -146,8 +146,8 @@ def compare_dicts(d1: dict, d2: dict,
                 printval1 = f"{nr_of_keys1} keys (mean {total1/nr_of_keys1} values per key)"
                 printval2 = f"{nr_of_keys2} keys (mean {total2/nr_of_keys2} values per key)"
             else:
-                printval1 = len(v1)
-                printval2 = len(v2)
+                printval1 = str(len(v1))
+                printval2 = str(len(v2))
         else:
             printval1 = str(v1)
             printval2 = str(v2)

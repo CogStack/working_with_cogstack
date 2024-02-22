@@ -161,11 +161,11 @@ class AnnotationComparisonType(Enum):
                 return cls.OVERLAPP_2ND_LARGER_SAME_CONCEPT
             return cls.OVERLAPP_2ND_LARGER_DIFF_CONCEPT
         # condition shouldn't be necessary
-        if len1 == len2:
-            # same length, but not identical span
-            if cui1 == cui2:
-                return cls.PARTIAL_OVERLAP_SAME_CONCEPT
-            return cls.PARTIAL_OVERLAP_DIFF_CONCEPT
+        # if len1 == len2:
+        # same length, but not identical span
+        if cui1 == cui2:
+            return cls.PARTIAL_OVERLAP_SAME_CONCEPT
+        return cls.PARTIAL_OVERLAP_DIFF_CONCEPT
 
 
 class PerDocAnnotationDifferences(BaseModel):
