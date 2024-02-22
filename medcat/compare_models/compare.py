@@ -34,7 +34,7 @@ def do_counting(cat: CAT, documents: List[Tuple[str, str]]) -> ResultsTally:
     return res
 
 
-def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Tuple[str, str],
+def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: List[Tuple[str, str]],
                              show_progress: bool = True) -> PerAnnotationDifferences:
     pad = PerAnnotationDifferences()
     for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress):
