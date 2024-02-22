@@ -118,8 +118,11 @@ def compare_dicts(d1: dict, d2: dict,
         if custom_printval_gens and key in custom_printval_gens:
             printval1 = custom_printval_gens[key](v1)
             printval2 = custom_printval_gens[key](v2)
-        elif ignore_callables and callable(v1):
-            continue  # ignore
+        elif callable(v1):
+            if ignore_callables:
+                continue
+            printval1 = str(v1)
+            printval2 = str(v2)
         elif isinstance(v1, dict):
             assert isinstance(v2, dict)
             # just number of items
@@ -145,6 +148,9 @@ def compare_dicts(d1: dict, d2: dict,
             else:
                 printval1 = len(v1)
                 printval2 = len(v2)
+        else:
+            printval1 = str(v1)
+            printval2 = str(v2)
         print(output_formatter(key, printval1, printval2))
 
 

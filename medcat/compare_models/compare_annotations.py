@@ -72,6 +72,14 @@ class ResultsTally(BaseModel):
         }
         return summary
 
+    def get_for_cui(self, cui: str) -> dict:
+        if cui not in self.per_cui_count:
+            return {"name": "N/A", "count": "N/A", "acc": "N/A", "forms": "N/A"}
+        return {"name": self.cui2name(cui),
+                "count": self.per_cui_count[cui],
+                "acc": self.per_cui_acc[cui],
+                "forms": len(self.per_cui_forms[cui])}
+
 
 # def _check_overlap(d1: dict, d2: dict) -> Tuple[bool, bool]:
 #     """Check if two annotated entities are overlapping (or identical).
