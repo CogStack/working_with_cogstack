@@ -46,6 +46,7 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Tuple[str, str],
 def get_diffs_for(model_pack_path_1: str,
                   model_pack_path_2: str,
                   documents_file: str,
+                  cui_filter: Optional[Set[str]] = None,
                   show_progress: bool = True
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     documents = load_documents(documents_file)
@@ -55,6 +56,11 @@ def get_diffs_for(model_pack_path_1: str,
     if show_progress:
         print("Loading [2]", model_pack_path_2)
     cat2 = CAT.load_model_pack(model_pack_path_2)
+    if cui_filter:
+        if show_progress:
+            print("Applying filter to CATs:", len(cui_filter), 'CUIs')
+        cat1.config.linking.filters.cuis = cui_filter
+        cat2.config.linking.filters.cuis = cui_filter
     if show_progress:
         print("Counting [1]")
     res1 = do_counting(cat1, documents)
