@@ -154,6 +154,7 @@ def parse_and_show(cdb_diff: CDBCompareResults, tally1: ResultsTally, tally2: Re
     print("CDB overall differences:")
     show_dict_deep(cdb_diff.dict(), output_formatter=output_formatter)
     print("Now tally differences")
-    compare_dicts(tally1.dict(), tally2.dict(), output_formatter=output_formatter)
+    gens = {"cat_data": lambda v: str(v)}
+    compare_dicts(tally1.dict(), tally2.dict(), output_formatter=output_formatter, custom_printval_gens=gens)
     print("Now per-annotation differences:")
     show_dict_deep(ann_diffs.totals, output_formatter=output_formatter)
