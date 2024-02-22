@@ -13,36 +13,16 @@ class ResultsTally(BaseModel):
     per_cui_forms: Dict[str, Set[str]] = {}
     per_type_counts: Dict[str, int] = {}
 
-    # def __init__(self, cat_data: dict, cui2name: Callable[[str], str]) -> None:
-        # self.cat_data = cat_data
-        # self._cui2name = cui2name
-        # self._total_count = 0
-        # self._per_cui_count: Dict[str, int] = {}
-        # self._per_cui_acc: Dict[str, float] = {}
-        # self._per_cui_forms: Dict[str, Set[str]] = {}
-        # self._per_type_counts: Dict[str, int] = {}
-
     def _count(self, entity: Dict):
-        # ['pretty_name', 'cui', 'type_ids', 'types', 'source_value', 'detected_name',
-        #   'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
-        #   'snomed', 'id', 'meta_anns']
-        # print(key, '->', value.keys())
         cui = entity['cui']
         type_ids = entity['type_ids']
         form = entity['detected_name']
         acc = entity['acc']
-        # sim = entity['context_similarity']
-        # print(cui, type_ids, form, acc)
-        # if sim != acc:
-        #     print("SIM AND ACC DIFFER", sim, 'vs', acc)
-        #     print("ALL:")
-        #     print(entity)
         if cui not in self.per_cui_count:
             self.per_cui_count[cui] = 0
             self.per_cui_acc[cui] = 0
             self.per_cui_forms[cui] = set()
         # update total count
-        # print("SELF\n", self, '\nKEYS', self.dict().keys())
         self.total_count += 1
         # update accuracy
         prev_cui_cnt = self.per_cui_count[cui]
@@ -58,7 +38,6 @@ class ResultsTally(BaseModel):
 
     def count(self, entities: Dict):
         raw = entities['entities']
-        # print("RAW", raw.keys())
         for _, value in raw.items():
             self._count(value)
 
@@ -79,31 +58,6 @@ class ResultsTally(BaseModel):
                 "count": self.per_cui_count[cui],
                 "acc": self.per_cui_acc[cui],
                 "forms": len(self.per_cui_forms[cui])}
-
-
-# def _check_overlap(d1: dict, d2: dict) -> Tuple[bool, bool]:
-#     """Check if two annotated entities are overlapping (or identical).
-
-#     Annotated entities are assumed to have the following keys:
-#         ['pretty_name', 'cui', 'type_ids', 'types', 'source_value', 'detected_name',
-#         'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
-#         'snomed', 'id', 'meta_anns']
-#     Though this method shoudl only be interested in 'start' and 'end'.
-
-#     Args:
-#         d1 (dict): The 1st annotated entity. 
-#         d2 (dict): The 2nd annotated entity.
-
-#     Returns:
-#         Tuple[bool, bool]: Whether there's overlapping, whether the first is before.
-#     """
-#     # NOTE: Using strictly less than since it would
-#     #       not make a lot of sense for the next entity
-#     #       to start with the character that the previous
-#     #       ended with ('end' should be the end character)
-#     start1, end1 = d1['start'], d1['end']
-#     start2, end2 = d2['start'], d2['end']
-#     return _check_overlap_internal(start1, end1, start2, end2)
 
 
 def _check_overlap_internal(start1: int, end1: int, start2: int, end2: int) -> bool:
@@ -211,8 +165,6 @@ class PerDocAnnotationDifferences(BaseModel):
         # ['pretty_name', 'cui', 'type_ids', 'types', 'source_value', 'detected_name',
         #   'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
         #   'snomed', 'id', 'meta_anns']
-        # print("RAW", raw.keys())
-        # cursor = 0
         comparisons: Dict[AnnotationComparisonType, int] = {}
         while len(raw1) or len(raw2):
             # first key in either dict of entities
@@ -228,8 +180,6 @@ class PerDocAnnotationDifferences(BaseModel):
             else:
                 k2 = None
                 v2 = None
-            #     k1 = sorted(raw1.keys())[0]
-            #     k2 = sorted(raw2.keys())[0]
             # corresponding value in either dict of entities
             comp = AnnotationComparisonType.determine(v1, v2)
             rem_1st = comp.in_first()
