@@ -109,10 +109,10 @@ class AnnotationComparisonType(Enum):
     IDENTICAL = auto()
 
     def in_first(self) -> bool:
-        return self != self.SECOND_HAS
+        return self != AnnotationComparisonType.SECOND_HAS
 
     def in_second(self) -> bool:
-        return self != self.FIRST_HAS
+        return self != AnnotationComparisonType.FIRST_HAS
 
     @classmethod
     def determine(cls, d1: Optional[dict], d2: Optional[dict]) -> 'AnnotationComparisonType':
@@ -195,8 +195,14 @@ class AnnotationPair(BaseModel):
             rem_2nd = comp.in_second()
             if rem_1st:
                 del raw1[k1]
+            else:
+                # now overlap with 1st
+                v1 = None
             if rem_2nd:
                 del raw2[k2]
+            else:
+                # no overlap with 2nd
+                v2 = None
             if not rem_1st and not rem_2nd:
                 # can't move forward, would be stuck in infinte loop
                 raise ValueError("Unknown comparison that leaves us"
