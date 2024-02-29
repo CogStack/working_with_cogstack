@@ -429,19 +429,28 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
                 self.assertEqual(pair, expected_pair)
 
     def test_iteration(self):
-        list_of_pairs = list(self.pad.iter_ann_pairs())
+        list_of_pairs = list(self.pad.iter_ann_pairs(omit_identical=False))
         self.assertCorrectPairs(list_of_pairs)
 
+    def test_iteration_omit_identical(self):
+        list_of_pairs = list(self.pad.iter_ann_pairs(omit_identical=True))
+        # check with pop
+        for expected in self.expected_pair_order:
+            if expected[1].comparison_type == compare_annotations.AnnotationComparisonType.IDENTICAL:
+                continue
+            with self.subTest(f"{expected}"):
+                self.assertEqual(list_of_pairs.pop(0), expected)
+
     def test_iteration_filter_all(self, doc_list = ['0', '1']):
-        list_of_pairs = list(self.pad.iter_ann_pairs(docs=doc_list))
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=doc_list, omit_identical=False))
         self.assertCorrectPairs(list_of_pairs)
 
     def test_iteration_filter_none(self, docs=[]):
-        list_of_pairs = list(self.pad.iter_ann_pairs(docs=docs))
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=docs, omit_identical=False))
         self.assertEqual(list_of_pairs, docs)
 
     def test_iteration_filter_some(self, doc='1'):
-        list_of_pairs = list(self.pad.iter_ann_pairs(docs=[doc]))
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=[doc], omit_identical=False))
         # check has only this document
         doc_numbers = set([pair[0] for pair in list_of_pairs])
         self.assertEqual(doc_numbers, {doc})

@@ -248,7 +248,9 @@ class PerAnnotationDifferences(BaseModel):
                 totals[k] += v
         self.totals = totals
 
-    def iter_ann_pairs(self, docs: Optional[List[str]] = None) -> Iterator[Tuple[str, AnnotationPair]]:
+    def iter_ann_pairs(self,
+                       docs: Optional[List[str]] = None,
+                       omit_identical: bool = True) -> Iterator[Tuple[str, AnnotationPair]]:
         """ITerate over annotation pairs, potentially only for a specific subset of documents.
 
         If no document IDs are specified, all documents are used.
@@ -259,6 +261,7 @@ class PerAnnotationDifferences(BaseModel):
 
         Args:
             docs (Optional[List[str]], optional): The document IDs to use. Defaults to None.
+            omit_identical (bool): Whether to omit identical annotations. Defaults to True.
 
         Yields:
             Iterator[Tuple[str, AnnotationPair]]: An iteration of document name and annotation pair.
@@ -267,4 +270,6 @@ class PerAnnotationDifferences(BaseModel):
                     if docs is None or doc in docs]
         for doc, pdad in targets:
             for pair in pdad.all_annotation_pairs:
+                if omit_identical and pair.comparison_type == AnnotationComparisonType.IDENTICAL:
+                    continue
                 yield doc, pair
