@@ -249,6 +249,20 @@ class PerAnnotationDifferences(BaseModel):
         self.totals = totals
 
     def iter_ann_pairs(self, docs: Optional[List[str]] = None) -> Iterator[Tuple[str, AnnotationPair]]:
+        """ITerate over annotation pairs, potentially only for a specific subset of documents.
+
+        If no document IDs are specified, all documents are used.
+        Otherwise, only the documents specified are used.
+
+        If the list of documents contains document IDs that have not been looked at
+        they will be ignored.
+
+        Args:
+            docs (Optional[List[str]], optional): The document IDs to use. Defaults to None.
+
+        Yields:
+            Iterator[Tuple[str, AnnotationPair]]: An iteration of document name and annotation pair.
+        """
         targets = [(doc, self.per_doc_results[doc]) for doc in self.per_doc_results
                     if docs is None or doc in docs]
         for doc, pdad in targets:
