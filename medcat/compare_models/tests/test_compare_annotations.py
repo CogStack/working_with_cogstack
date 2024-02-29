@@ -374,7 +374,7 @@ class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
         self.assertEqual(self.pad.totals, self.expected_totals)
 
 
-class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
+class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
     annotations1 = [
         # doc1
         {"entities": {
@@ -398,6 +398,20 @@ class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
     ]
     expected_totals = {compare_annotations.AnnotationComparisonType.IDENTICAL: 2,
                        compare_annotations.AnnotationComparisonType.FIRST_HAS: 2}
+    expected_pair_order = [
+        ("0", compare_annotations.AnnotationPair(one=annotations1[0]['entities']['0'],
+                                                 two=annotations2[0]['entities']['0'],
+                                                 comparison_type=compare_annotations.AnnotationComparisonType.IDENTICAL)),
+        ("0", compare_annotations.AnnotationPair(one=annotations1[0]['entities']['1'],
+                                                 two=annotations2[0]['entities']['1'],
+                                                 comparison_type=compare_annotations.AnnotationComparisonType.IDENTICAL)),
+        ("1", compare_annotations.AnnotationPair(one=annotations1[1]['entities']['0'],
+                                                 two=None,
+                                                 comparison_type=compare_annotations.AnnotationComparisonType.FIRST_HAS)),
+        ("1", compare_annotations.AnnotationPair(one=annotations1[1]['entities']['1'],
+                                                 two=None,
+                                                 comparison_type=compare_annotations.AnnotationComparisonType.FIRST_HAS)),
+    ]
 
     def setUp(self):
         self.pad = compare_annotations.PerAnnotationDifferences()
@@ -407,3 +421,10 @@ class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
 
     def test_identical(self):
         self.assertEqual(self.pad.totals, self.expected_totals)
+
+    def test_iteration(self):
+        list_of_pairs = list(self.pad.iter_ann_pairs())
+        self.assertEqual(len(list_of_pairs), 4)
+        for nr, (pair, expected_pair) in enumerate(zip(list_of_pairs, self.expected_pair_order)):
+            with self.subTest(f"{nr}"):
+                self.assertEqual(pair, expected_pair)
