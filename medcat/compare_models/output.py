@@ -157,8 +157,14 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
             # just number of items
             nr_of_keys1 = len(v1)
             nr_of_keys2 = len(v2)
-            k0 = list(v1)[0]
-            v0 = v1[k0]
+            print('V', type(v1), ":", v1)
+            keys = list(v1)
+            if keys:
+                k0 = list(v1)[0]
+                v0 = v1[k0]
+            else:
+                # empty dict
+                v0 = v1
             if isinstance(v0, int):
                 total1 = sum(v1.values())
                 total2 = sum(v2.values())
