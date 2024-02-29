@@ -134,7 +134,7 @@ class AnnotationComparisonType(Enum):
             return cls.SECOND_HAS
         if d2 is None:
             return cls.FIRST_HAS
-        
+
         start1, end1 = d1['start'], d1['end']
         start2, end2 = d2['start'], d2['end']
         cui1, cui2 = d1['cui'], d2['cui']
@@ -223,7 +223,7 @@ class PerAnnotationDifferences(BaseModel):
 
     def look_at_doc(self, d1: dict, d2: dict, doc_id: str):
         self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(d1, d2)
-    
+
     def finalise(self):
         totals: Dict[AnnotationComparisonType, int] = {}
         for value in self.per_doc_results.values():
