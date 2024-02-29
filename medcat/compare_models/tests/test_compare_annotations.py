@@ -394,10 +394,14 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
             "1": {"start": 40, "end": 55, "cui": 'C2'}
                 }},
         # doc2
-        {"entities": {}},
+        {"entities": {
+            "0": {"start": 80, "end": 88, "cui": 'C3'},
+        }},
     ]
     expected_totals = {compare_annotations.AnnotationComparisonType.IDENTICAL: 2,
-                       compare_annotations.AnnotationComparisonType.FIRST_HAS: 2}
+                       compare_annotations.AnnotationComparisonType.FIRST_HAS: 2,
+                       compare_annotations.AnnotationComparisonType.SECOND_HAS: 1,
+                       }
     expected_pair_order = [
         ("0", compare_annotations.AnnotationPair(one=annotations1[0]['entities']['0'],
                                                  two=annotations2[0]['entities']['0'],
@@ -411,6 +415,9 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
         ("1", compare_annotations.AnnotationPair(one=annotations1[1]['entities']['1'],
                                                  two=None,
                                                  comparison_type=compare_annotations.AnnotationComparisonType.FIRST_HAS)),
+        ("1", compare_annotations.AnnotationPair(one=None,
+                                                 two=annotations2[1]['entities']['0'],
+                                                 comparison_type=compare_annotations.AnnotationComparisonType.SECOND_HAS)),
     ]
 
     def setUp(self):
