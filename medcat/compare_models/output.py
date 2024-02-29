@@ -87,24 +87,26 @@ def show_dict_deep(d: dict, path: str = '',
         print(output_formatter(total_path, d[key1], d[key2]))
 
 
-def _empty_values_recursively(d: dict) -> None:
+def _empty_values_recursively(d: dict, cur_depth: int = 0, max_depth: int = 2) -> None:
     for k in set(d.keys()):
         v = d[k]
-        if isinstance(v, dict):
-            _empty_values_recursively(v)
+        if isinstance(v, dict) and cur_depth < max_depth:
+            _empty_values_recursively(v, cur_depth=cur_depth + 1, max_depth=max_depth)
         else:
             if isinstance(v, str):
                 d[k] = ''
             elif isinstance(v, numbers.Number):
                 d[k] = 0
+            if isinstance(v, dict):
+                d[k] = {}
             else:
                 # unknown
                 d[k] = ''
 
 
-def _get_nulled_copy(d: dict) -> dict:
+def _get_nulled_copy(d: dict, depth: int = 0) -> dict:
     d2 = deepcopy(d)
-    _empty_values_recursively(d2)
+    _empty_values_recursively(d2, cur_depth=0, max_depth=depth)
     return d2
 
 
@@ -157,29 +159,47 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
             # just number of items
             nr_of_keys1 = len(v1)
             nr_of_keys2 = len(v2)
-            keys = list(v1)
-            if keys:
-                k0 = list(v1)[0]
+            value_keys = list(v1)
+            if value_keys:
+                k0 = value_keys[0]
                 v0 = v1[k0]
             else:
                 # empty dict
                 v0 = v1
             if isinstance(v0, int):
+                key = f"{key} (Dict[{type(key).__name__}, int])"
                 total1 = sum(v1.values())
                 total2 = sum(v2.values())
                 printval1 = f"{nr_of_keys1} keys (total {total1} in value)"
                 printval2 = f"{nr_of_keys2} keys (total {total2} in value)"
             elif isinstance(v0, float):
-                mean1 = sum(v1.values())/nr_of_keys1
-                mean2 = sum(v2.values())/nr_of_keys2
+                key = f"{key} (Dict[{type(key).__name__}, float])"
+                if nr_of_keys1:
+                    mean1 = sum(v1.values())/nr_of_keys1
+                else:
+                    mean1 = 0.0
+                if nr_of_keys2:
+                    mean2 = sum(v2.values())/nr_of_keys2
+                else:
+                    mean2 = 0.0
                 printval1 = f"{nr_of_keys1} keys (mean {mean1} in value)"
                 printval2 = f"{nr_of_keys2} keys (mean {mean2} in value)"
             elif isinstance(v0, set):
+                key = f"{key} (Dict[{type(key).__name__}, Set])"
                 total1 = sum(len(v) for v in v1.items())
                 total2 = sum(len(v) for v in v2.items())
-                printval1 = f"{nr_of_keys1} keys (mean {total1/nr_of_keys1} values per key)"
-                printval2 = f"{nr_of_keys2} keys (mean {total2/nr_of_keys2} values per key)"
+                if nr_of_keys1:
+                    mean1 = total1/nr_of_keys1
+                else:
+                    mean1 = 0.0
+                if nr_of_keys2:
+                    mean2 = total2/nr_of_keys2
+                else:
+                    mean2 = 0.0
+                printval1 = f"{nr_of_keys1} keys (mean {mean1} values per key)"
+                printval2 = f"{nr_of_keys2} keys (mean {mean2} values per key)"
             else:
+                key = f"{key} (Dict[{type(key).__name__}, {type(v0).__name__}])"
                 printval1 = str(len(v1))
                 printval2 = str(len(v2))
         else:
