@@ -1,6 +1,8 @@
 from typing import Any, Optional, Callable, Tuple, Dict
 
 from enum import Enum
+from copy import deepcopy
+import numbers
 
 from compare_cdb import compare as CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
@@ -85,7 +87,28 @@ def show_dict_deep(d: dict, path: str = '',
         print(output_formatter(total_path, d[key1], d[key2]))
 
 
-def compare_dicts(d1: dict, d2: dict,
+def _empty_values_recursively(d: dict) -> None:
+    for k in set(d.keys()):
+        v = d[k]
+        if isinstance(v, dict):
+            _empty_values_recursively(v)
+        else:
+            if isinstance(v, str):
+                d[k] = ''
+            elif isinstance(v, numbers.Number):
+                d[k] = 0
+            else:
+                # unknown
+                d[k] = ''
+
+
+def _get_nulled_copy(d: dict) -> dict:
+    d2 = deepcopy(d)
+    _empty_values_recursively(d2)
+    return d2
+
+
+def compare_dicts(d1: Optional[dict], d2: Optional[dict],
                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
                   ignore_callables: bool = True,
                   custom_printval_gens: Optional[Dict[str, Callable[[Any], str]]] = None):
@@ -99,8 +122,8 @@ def compare_dicts(d1: dict, d2: dict,
       - If the dict maps to sets the mean number of elements is measued (e.g per-cui forms)
 
     Args:
-        d1 (dict): The first dict.
-        d2 (dict): The second dict.
+        d1 (Optional[dict]): The first dict.
+        d2 (Optional[dict]): The second dict.
         output_formatter (Callable[[str, str, Optional[str]], str], optional): The output formatter.
             Defaults to default_formatter.
         ignore_callables (bool): Whether to ignore callable values. Defaults to True.
@@ -111,6 +134,12 @@ def compare_dicts(d1: dict, d2: dict,
     raises:
         AssertionError: If the keys of the two dicts differ; or if value types mismatch.
     """
+    if d1 is None and d2 is None:
+        raise ValueError("At least one of the two dicts needs to be non-None")
+    if d1 is None:
+        d1 = _get_nulled_copy(d2)
+    if d2 is None:
+        d2 = _get_nulled_copy(d1)
     assert d1.keys() == d2.keys()
     for key in d1:
         v1 = d1[key]
