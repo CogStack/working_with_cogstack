@@ -138,10 +138,15 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
     """
     if d1 is None and d2 is None:
         raise ValueError("At least one of the two dicts needs to be non-None")
-    if d1 is None:
+    # latter condition is for mypy
+    if d1 is None and d2 is not None:
         d1 = _get_nulled_copy(d2)
-    if d2 is None:
+    # latter condition is for mypy
+    if d2 is None and d1 is not None:
         d2 = _get_nulled_copy(d1)
+    # for mypy - these are now both non-None
+    d1: Dict = d1  # type: ignore
+    d2: Dict = d2  # type: ignore
     assert d1.keys() == d2.keys()
     for key in d1:
         v1 = d1[key]
