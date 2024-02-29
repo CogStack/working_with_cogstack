@@ -422,9 +422,33 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
     def test_identical(self):
         self.assertEqual(self.pad.totals, self.expected_totals)
 
-    def test_iteration(self):
-        list_of_pairs = list(self.pad.iter_ann_pairs())
-        self.assertEqual(len(list_of_pairs), 4)
+    def assertCorrectPairs(self, list_of_pairs: list):
+        self.assertEqual(len(list_of_pairs), len(self.expected_pair_order))
         for nr, (pair, expected_pair) in enumerate(zip(list_of_pairs, self.expected_pair_order)):
             with self.subTest(f"{nr}"):
                 self.assertEqual(pair, expected_pair)
+
+    def test_iteration(self):
+        list_of_pairs = list(self.pad.iter_ann_pairs())
+        self.assertCorrectPairs(list_of_pairs)
+
+    def test_iteration_filter_all(self, doc_list = ['0', '1']):
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=doc_list))
+        self.assertCorrectPairs(list_of_pairs)
+
+    def test_iteration_filter_none(self, docs=[]):
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=docs))
+        self.assertEqual(list_of_pairs, docs)
+
+    def test_iteration_filter_some(self, doc='1'):
+        list_of_pairs = list(self.pad.iter_ann_pairs(docs=[doc]))
+        # check has only this document
+        doc_numbers = set([pair[0] for pair in list_of_pairs])
+        self.assertEqual(doc_numbers, {doc})
+        # check has correct pairs
+        # pop the first off list every time
+        for doc_name, expected_pair in self.expected_pair_order:
+            if doc_name != doc:
+                continue
+            with self.subTest(f"{doc_name}: {expected_pair}"):
+                self.assertEqual(list_of_pairs.pop(0), (doc_name, expected_pair))

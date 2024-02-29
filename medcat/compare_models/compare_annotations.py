@@ -248,7 +248,9 @@ class PerAnnotationDifferences(BaseModel):
                 totals[k] += v
         self.totals = totals
 
-    def iter_ann_pairs(self) -> Iterator[Tuple[str, AnnotationPair]]:
-        for doc, pdad in self.per_doc_results.items():
+    def iter_ann_pairs(self, docs: Optional[List[str]] = None) -> Iterator[Tuple[str, AnnotationPair]]:
+        targets = [(doc, self.per_doc_results[doc]) for doc in self.per_doc_results
+                    if docs is None or doc in docs]
+        for doc, pdad in targets:
             for pair in pdad.all_annotation_pairs:
                 yield doc, pair
