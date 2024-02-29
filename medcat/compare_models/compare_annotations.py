@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set, Callable, Optional, Union
+from typing import List, Tuple, Dict, Set, Callable, Optional, Union, Iterator
 
 from pydantic import BaseModel
 from enum import Enum, auto
@@ -168,21 +168,13 @@ class AnnotationComparisonType(Enum):
         return cls.PARTIAL_OVERLAP_DIFF_CONCEPT
 
 
-class PerDocAnnotationDifferences(BaseModel):
-    nr_of_comparisons: Dict[AnnotationComparisonType, int] = {}
+class AnnotationPair(BaseModel):
+    one: Optional[Dict]
+    two: Optional[Dict]
+    comparison_type: AnnotationComparisonType
 
     @classmethod
-    def get(cls, d1: dict, d2: dict) -> 'PerDocAnnotationDifferences':
-        # creating copies so I can ditch the entries
-        # that I've already dealt with
-        raw1 = dict(d1['entities'])
-        raw2 = dict(d2['entities'])
-        # now we have {'key': VAL}
-        # where VAL has keys:
-        # ['pretty_name', 'cui', 'type_ids', 'types', 'source_value', 'detected_name',
-        #   'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
-        #   'snomed', 'id', 'meta_anns']
-        comparisons: Dict[AnnotationComparisonType, int] = {}
+    def iterate_over(cls, raw1: dict, raw2: dict) -> Iterator['AnnotationPair']:
         while len(raw1) or len(raw2):
             # first key in either dict of entities
             if raw1:
@@ -211,10 +203,33 @@ class PerDocAnnotationDifferences(BaseModel):
                                  "in an infinite loop. Happened while"
                                  f"comparing '{k1}' ({v1})"
                                  f"to '{k2}' ({v2})")
+            yield cls(one=v1, two=v2, comparison_type=comp)
+
+
+class PerDocAnnotationDifferences(BaseModel):
+    nr_of_comparisons: Dict[AnnotationComparisonType, int] = {}
+    all_annotation_pairs: List[AnnotationPair] = []
+
+    @classmethod
+    def get(cls, d1: dict, d2: dict) -> 'PerDocAnnotationDifferences':
+        # creating copies so I can ditch the entries
+        # that I've already dealt with
+        raw1 = dict(d1['entities'])
+        raw2 = dict(d2['entities'])
+        # now we have {'key': VAL}
+        # where VAL has keys:
+        # ['pretty_name', 'cui', 'type_ids', 'types', 'source_value', 'detected_name',
+        #   'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
+        #   'snomed', 'id', 'meta_anns']
+        comparisons: Dict[AnnotationComparisonType, int] = {}
+        all_annotation_pairs: List[AnnotationPair] = []
+        for pair in AnnotationPair.iterate_over(raw1, raw2):
+            comp = pair.comparison_type
             if comp not in comparisons:
                 comparisons[comp] = 0
             comparisons[comp] += 1
-        return cls(nr_of_comparisons=comparisons)
+            all_annotation_pairs.append(pair)
+        return cls(nr_of_comparisons=comparisons, all_annotation_pairs=all_annotation_pairs)
 
 
 class PerAnnotationDifferences(BaseModel):
@@ -232,3 +247,8 @@ class PerAnnotationDifferences(BaseModel):
                     totals[k] = 0
                 totals[k] += v
         self.totals = totals
+
+    def iter_ann_pairs(self) -> Iterator[Tuple[str, AnnotationPair]]:
+        for doc, pdad in self.per_doc_results.items():
+            for pair in pdad.all_annotation_pairs:
+                yield doc, pair
