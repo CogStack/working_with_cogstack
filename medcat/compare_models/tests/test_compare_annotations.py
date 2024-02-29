@@ -454,6 +454,9 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
         # check has only this document
         doc_numbers = set([pair[0] for pair in list_of_pairs])
         self.assertEqual(doc_numbers, {doc})
+        # check that is has an entry for each annotation in doc
+        expected_annotations = [ann for ann in self.expected_pair_order if ann[0] == doc]
+        self.assertEqual(len(expected_annotations), len(list_of_pairs))
         # check has correct pairs
         # pop the first off list every time
         for doc_name, expected_pair in self.expected_pair_order:
