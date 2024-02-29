@@ -157,7 +157,6 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
             # just number of items
             nr_of_keys1 = len(v1)
             nr_of_keys2 = len(v2)
-            print('V', type(v1), ":", v1)
             keys = list(v1)
             if keys:
                 k0 = list(v1)[0]
