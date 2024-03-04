@@ -168,3 +168,8 @@ class MCTExportMetaAnnRenameTests(unittest.TestCase):
                                      meta_ann_values2rename=self.VALUES2RENAME)
         self._check_names(prev_anns)
         self._check_values(prev_anns, only_values=False)
+
+    def test_meta_annotations_renamed_values_only(self):
+        prev_anns = list(self._get_all_meta_anns())
+        self.export.rename_meta_anns(meta_ann_values2rename=self.VALUES2RENAME)
+        self._check_values(prev_anns, only_values=True)
