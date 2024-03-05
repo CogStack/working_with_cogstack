@@ -350,7 +350,14 @@ class MedcatTrainer_export(object):
                 else:
                     pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
                     counter += 1
-            meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values) # TODO fix this line
+
+            loc = meta_df.columns.get_loc(meta_model)
+            if isinstance(loc, int):
+                meta_df.insert(loc + 1, f'predict_{meta_model}', pred_meta_values)
+            else:
+                print(f"Warning: Unexpected column location type: {type(loc)}")
+            meta_df.insert(1, f'predict_{meta_model}', pred_meta_values)
+            #meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values) # TODO fix this line
 
         return meta_df
 

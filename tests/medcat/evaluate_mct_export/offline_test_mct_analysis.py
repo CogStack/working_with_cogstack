@@ -29,7 +29,6 @@ class MCTExportBasicTests(BaseMCTExportTests):
         cls.export = MedcatTrainer_export([MCT_EXPORT_JSON_PATH, ], MODEL_PACK_PATH)
 
     # these would need a CAT instance
-    ''' TODO: return this once meta_annotations are fixed
     def test_can_full_annotation_df(self):
         full_ann_df = self.export.full_annotation_df()
         self.assertNonEmptyDataframe(full_ann_df)
@@ -39,7 +38,6 @@ class MCTExportBasicTests(BaseMCTExportTests):
         # this will be empty since I don't think I have anything
         # of note regarding meta annotations
         self.assertIsNotNone(meta_anns_summary_df)
-    '''
 
     def test_generate_report(self):
         self.export.generate_report(path=self.report_path)
