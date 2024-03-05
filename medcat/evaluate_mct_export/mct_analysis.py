@@ -350,7 +350,7 @@ class MedcatTrainer_export(object):
                 else:
                     pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
                     counter += 1
-            meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, f'predict_{meta_model}', pred_meta_values)
+            meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values)
 
         return meta_df
 
