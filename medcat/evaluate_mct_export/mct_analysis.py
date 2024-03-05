@@ -321,7 +321,8 @@ class MedcatTrainer_export(object):
         result = self._eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
 
         return {'predictions': result, 'meta_values': _}
-
+    
+''' TODO: clean uo the insert method with the meta_annotations 
     def full_annotation_df(self) -> pd.DataFrame:
         """
         DataFrame of all annotations created including meta_annotation predictions.
@@ -329,7 +330,7 @@ class MedcatTrainer_export(object):
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
-        if not self.cat or not self.model_pack_path:  # moslty for typing so flake8 knows it's not None down below
+        if not self.cat or not self.model_pack_path:  # mostly for typing so flake8 knows it's not None down below
             raise ValueError("No model pack specified")
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
@@ -405,7 +406,7 @@ class MedcatTrainer_export(object):
         meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
         meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
         return meta_anns_df
-    
+'''
 
     def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):
         """
