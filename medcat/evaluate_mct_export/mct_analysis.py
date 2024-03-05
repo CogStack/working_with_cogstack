@@ -405,18 +405,19 @@ class MedcatTrainer_export(object):
         meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
         meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
         return meta_anns_df
+    
 
     def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):
         """
         :param path: Outfile path
         :param meta_ann: Include Meta_annotation evaluation in the summary as well
         :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
-        :return: An full excel report for MedCATtrainer annotation work done.
+        :return: A full excel report for MedCATtrainer annotation work done.
         """
         if not self.cat:
             raise ValueError("No model pack specified")
         if concept_filter:
-            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path) as writer:
                 print('Generating report...')
                 # array-like is allowed by documentation but not by typing
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
@@ -425,15 +426,16 @@ class MedcatTrainer_export(object):
                                ignore_index = True)
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
                 self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
                 print('Evaluating annotations...')
                 if meta_ann:
                     ann_df = self.full_annotation_df()
                     ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df['timestamp'] = ann_df['timestamp'].dt.tz_localize(None)  # Remove timezone information
                     ann_df.to_excel(writer, index=False, sheet_name='annotations')
                 else:
                     ann_df = self.annotation_df()
                     ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df['timestamp'] = ann_df['timestamp'].dt.tz_localize(None)  # Remove timezone information
                     ann_df.to_excel(writer, index=False, sheet_name='annotations')
                 performance_summary_df = self.concept_summary()
                 performance_summary_df = performance_summary_df[performance_summary_df['cui'].isin(concept_filter)]\
@@ -445,13 +447,12 @@ class MedcatTrainer_export(object):
                     meta_anns_df = meta_anns_df[meta_anns_df['cui'].isin(concept_filter)].reset_index(drop=True)
                     meta_anns_df.to_excel(writer, index=True, sheet_name='meta_annotations_summary')
         else:
-            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path) as writer:
                 print('Generating report...')
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
                 df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']  # type: ignore
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
                 self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
                 print('Evaluating annotations...')
                 if meta_ann:
                     self.full_annotation_df().to_excel(writer, index=False, sheet_name='annotations')
