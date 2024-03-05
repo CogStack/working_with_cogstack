@@ -321,7 +321,91 @@ class MedcatTrainer_export(object):
         result = self._eval_model(metacat_model.model, data, config=metacat_model.config, tokenizer=metacat_model.tokenizer)
 
         return {'predictions': result, 'meta_values': _}
-    
+
+    def full_annotation_df(self) -> pd.DataFrame:
+        """
+        DataFrame of all annotations created including meta_annotation predictions.
+        This function is similar to annotation_df with the addition of Meta_annotation predictions from the medcat model.
+        prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
+        :return: DataFrame
+        """
+        if not self.cat or not self.model_pack_path:  # mostly for typing so flake8 knows it's not None down below
+            raise ValueError("No model pack specified")
+        anns_df = self.annotation_df()
+        meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
+                          & (anns_df['irrelevant'] != True)]
+        meta_df = meta_df.reset_index(drop=True)
+
+        for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            meta_model = meta_model_card['Category Name']
+            print(f'Checking metacat model: {meta_model}')
+            _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
+            meta_results = self._eval(_meta_model, self.mct_export)
+            _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
+            pred_meta_values = []
+            counter = 0
+            for meta_value in meta_df[meta_model]:
+                if pd.isnull(meta_value):
+                    pred_meta_values.append(np.nan)
+                else:
+                    pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
+                    counter += 1
+            meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values) # TODO fix this line
+
+        return meta_df
+
+    def meta_anns_concept_summary(self) -> pd.DataFrame:
+        if not self.cat:
+            raise ValueError("No model pack specified")
+        meta_df = self.full_annotation_df()
+        meta_performance = {}
+        for cui in meta_df.cui.unique():
+            temp_meta_df = meta_df[meta_df['cui'] == cui]
+            meta_task_results = {}
+            for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+                meta_task = meta_model_card['Category Name']
+                list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
+                counter_meta_anns = Counter(list_meta_anns)
+                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
+                for meta_value in meta_model_card['Classes'].keys():
+                    total = 0
+                    fp = 0
+                    fn = 0
+                    tp = 0
+                    for meta_value_result, count in counter_meta_anns.items():
+                        if meta_value_result[0] == meta_value:
+                            if meta_value_result[1] == meta_value:
+                                tp += count
+                                total += count
+                            else:
+                                fn += count
+                                total += count
+                        elif meta_value_result[1] == meta_value:
+                            fp += count
+                        else:
+                            pass  # Skips nan values
+                    meta_value_results[(meta_task, meta_value, 'total')] = total
+                    meta_value_results[(meta_task, meta_value, 'fps')] = fp
+                    meta_value_results[(meta_task, meta_value, 'fns')] = fn
+                    meta_value_results[(meta_task, meta_value, 'tps')] = tp
+                    try:
+                        meta_value_results[(meta_task, meta_value, 'f-score')] = tp / (tp + (1 / 2) * (fp + fn))
+                    except ZeroDivisionError:
+                        meta_value_results[(meta_task, meta_value, 'f-score')] = 0
+                meta_task_results.update(meta_value_results)
+            meta_performance[cui] = meta_task_results
+
+        meta_anns_df = pd.DataFrame.from_dict(meta_performance, orient='index')
+        col_lst = []
+        for col in meta_anns_df.columns:
+            if col[2] == 'total':
+                col_lst.append(col)
+        meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
+        meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
+        meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
+        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
+        return meta_anns_df
+
     def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):
         """
         :param path: Outfile path
@@ -379,90 +463,3 @@ class MedcatTrainer_export(object):
                     self.meta_anns_concept_summary().to_excel(writer, index=True, sheet_name='meta_annotations_summary')
 
         return print(f"MCT report saved to: {path}")
-
-    
-''' TODO: clean uo the insert method with the meta_annotations 
-    def full_annotation_df(self) -> pd.DataFrame:
-        """
-        DataFrame of all annotations created including meta_annotation predictions.
-        This function is similar to annotation_df with the addition of Meta_annotation predictions from the medcat model.
-        prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
-        :return: DataFrame
-        """
-        if not self.cat or not self.model_pack_path:  # mostly for typing so flake8 knows it's not None down below
-            raise ValueError("No model pack specified")
-        anns_df = self.annotation_df()
-        meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
-                          & (anns_df['irrelevant'] != True)]
-        meta_df = meta_df.reset_index(drop=True)
-
-        for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-            meta_model = meta_model_card['Category Name']
-            print(f'Checking metacat model: {meta_model}')
-            _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
-            meta_results = self._eval(_meta_model, self.mct_export)
-            _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
-            pred_meta_values = []
-            counter = 0
-            for meta_value in meta_df[meta_model]:
-                if pd.isnull(meta_value):
-                    pred_meta_values.append(np.nan)
-                else:
-                    pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
-                    counter += 1
-            meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values)
-
-        return meta_df
-
-    def meta_anns_concept_summary(self) -> pd.DataFrame:
-        if not self.cat:
-            raise ValueError("No model pack specified")
-        meta_df = self.full_annotation_df()
-        meta_performance = {}
-        for cui in meta_df.cui.unique():
-            temp_meta_df = meta_df[meta_df['cui'] == cui]
-            meta_task_results = {}
-            for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-                meta_task = meta_model_card['Category Name']
-                list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
-                counter_meta_anns = Counter(list_meta_anns)
-                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
-                for meta_value in meta_model_card['Classes'].keys():
-                    total = 0
-                    fp = 0
-                    fn = 0
-                    tp = 0
-                    for meta_value_result, count in counter_meta_anns.items():
-                        if meta_value_result[0] == meta_value:
-                            if meta_value_result[1] == meta_value:
-                                tp += count
-                                total += count
-                            else:
-                                fn += count
-                                total += count
-                        elif meta_value_result[1] == meta_value:
-                            fp += count
-                        else:
-                            pass  # Skips nan values
-                    meta_value_results[(meta_task, meta_value, 'total')] = total
-                    meta_value_results[(meta_task, meta_value, 'fps')] = fp
-                    meta_value_results[(meta_task, meta_value, 'fns')] = fn
-                    meta_value_results[(meta_task, meta_value, 'tps')] = tp
-                    try:
-                        meta_value_results[(meta_task, meta_value, 'f-score')] = tp / (tp + (1 / 2) * (fp + fn))
-                    except ZeroDivisionError:
-                        meta_value_results[(meta_task, meta_value, 'f-score')] = 0
-                meta_task_results.update(meta_value_results)
-            meta_performance[cui] = meta_task_results
-
-        meta_anns_df = pd.DataFrame.from_dict(meta_performance, orient='index')
-        col_lst = []
-        for col in meta_anns_df.columns:
-            if col[2] == 'total':
-                col_lst.append(col)
-        meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
-        meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
-        meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
-        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
-        return meta_anns_df
-'''
