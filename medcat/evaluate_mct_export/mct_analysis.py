@@ -357,7 +357,6 @@ class MedcatTrainer_export(object):
             else:
                 print(f"Warning: Unexpected column location type: {type(loc)}")
             meta_df.insert(1, f'predict_{meta_model}', pred_meta_values)
-            #meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values) # TODO fix this line
 
         return meta_df
 
