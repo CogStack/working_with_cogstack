@@ -350,7 +350,7 @@ class MedcatTrainer_export(object):
                 else:
                     pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
                     counter += 1
-            meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, 'predict_' + meta_model, pred_meta_values)
+            meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, f'predict_{meta_model}', pred_meta_values)
 
         return meta_df
 
@@ -463,31 +463,4 @@ class MedcatTrainer_export(object):
                     self.meta_anns_concept_summary().to_excel(writer, index=True, sheet_name='meta_annotations_summary')
 
         return print(f"MCT report saved to: {path}")
-
-
-
-
-
-'''
-# TODO: put this useful function somewhere
-    def get_all_children(self, terminology, pt2ch):
-        """
-        Get all children concepts from a specified terminology
-
-        :param terminology:
-        :param pt2ch:
-        :return:
-        """
-        result = []
-        stack = [terminology]
-        while len(stack) != 0:
-            # remove last element from stack
-            current_snomed = stack.pop()
-            current_snomed_parent = pt2ch.get(current_snomed, [])
-            stack.extend(current_snomed_parent)
-            result.append(current_snomed)
-        result = list(set(result))
-        return result
-'''
-
 
