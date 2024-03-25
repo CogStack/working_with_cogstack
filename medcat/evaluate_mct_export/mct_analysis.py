@@ -236,16 +236,15 @@ class MedcatTrainer_export(object):
     def rename_meta_anns(self, meta_anns2rename: dict = dict(), meta_ann_values2rename: dict = dict()):
         """Rename the names and/or values of meta annotations.
 
-        PS!
-        The renaming of values is currently only supported if renaming names as well.
-        If you want to rename the values but keep the names, it would be suggested
-        to have the `meta_anns2rename` a dict mappign the names to themselves.
-
-        TODO: the meta_ann_values2rename has issues
         :param meta_anns2rename: Example input: `{'Subject/Experiencer': 'Subject'}`
         :param meta_ann_values2rename: Example input: `{'Subject':{'Relative':'Other'}}`
         :return:
         """
+        # if we want to rename the values, but haven't specified any names to rename
+        # we need to use a names dict to map the names to themselves due to the way
+        # the current implementation works
+        if meta_ann_values2rename and not meta_anns2rename:
+            meta_anns2rename = dict((name, name) for name in meta_ann_values2rename)
         for _, _, ann in self._iter_anns(False, False):
             meta_anns = ann['meta_anns']
             if len(meta_anns) > 0:
@@ -331,7 +330,7 @@ class MedcatTrainer_export(object):
         prerequisite Args: MedcatTrainer_export([mct_export_paths], model_pack_path=<path to medcat model>)
         :return: DataFrame
         """
-        if not self.cat or not self.model_pack_path:  # moslty for typing so flake8 knows it's not None down below
+        if not self.cat or not self.model_pack_path:  # mostly for typing so flake8 knows it's not None down below
             raise ValueError("No model pack specified")
         anns_df = self.annotation_df()
         meta_df = anns_df[(anns_df['validated'] == True) & (anns_df['deleted'] == False) & (anns_df['killed'] == False)
@@ -350,9 +349,16 @@ class MedcatTrainer_export(object):
                 if pd.isnull(meta_value):
                     pred_meta_values.append(np.nan)
                 else:
-                    pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))  # type: ignore
-                    counter += 1  # type: ignore
-            meta_df.insert(meta_df.columns.get_loc(meta_model) + 1, 'predict_' + meta_model, pred_meta_values)
+                    pred_meta_values.append(_meta_values.get(meta_results['predictions'][counter], np.nan))
+                    counter += 1
+
+            loc = meta_df.columns.get_loc(meta_model)
+            if isinstance(loc, int):
+                meta_df.insert(loc + 1, f'predict_{meta_model}', pred_meta_values)
+            else:
+                print(f"Warning: Unexpected column location type: {type(loc)}")
+            meta_df.insert(1, f'predict_{meta_model}', pred_meta_values)
+            #meta_df.insert(int(meta_df.columns.get_loc(meta_model)) + 1, f'predict_{meta_model}', pred_meta_values) # TODO fix this line
 
         return meta_df
 
@@ -413,12 +419,12 @@ class MedcatTrainer_export(object):
         :param path: Outfile path
         :param meta_ann: Include Meta_annotation evaluation in the summary as well
         :param concept_filter: Filter the report to only display select concepts of interest. List of cuis.
-        :return: An full excel report for MedCATtrainer annotation work done.
+        :return: A full excel report for MedCATtrainer annotation work done.
         """
         if not self.cat:
             raise ValueError("No model pack specified")
         if concept_filter:
-            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path) as writer:
                 print('Generating report...')
                 # array-like is allowed by documentation but not by typing
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
@@ -427,15 +433,16 @@ class MedcatTrainer_export(object):
                                ignore_index = True)
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
                 self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
                 print('Evaluating annotations...')
                 if meta_ann:
                     ann_df = self.full_annotation_df()
                     ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df['timestamp'] = ann_df['timestamp'].dt.tz_localize(None)  # Remove timezone information
                     ann_df.to_excel(writer, index=False, sheet_name='annotations')
                 else:
                     ann_df = self.annotation_df()
                     ann_df = ann_df[ann_df['cui'].isin(concept_filter)].reset_index(drop=True)
+                    ann_df['timestamp'] = ann_df['timestamp'].dt.tz_localize(None)  # Remove timezone information
                     ann_df.to_excel(writer, index=False, sheet_name='annotations')
                 performance_summary_df = self.concept_summary()
                 performance_summary_df = performance_summary_df[performance_summary_df['cui'].isin(concept_filter)]\
@@ -447,13 +454,12 @@ class MedcatTrainer_export(object):
                     meta_anns_df = meta_anns_df[meta_anns_df['cui'].isin(concept_filter)].reset_index(drop=True)
                     meta_anns_df.to_excel(writer, index=True, sheet_name='meta_annotations_summary')
         else:
-            with pd.ExcelWriter(path, engine_kwargs={'options': {'remove_timezone': True}}) as writer:
+            with pd.ExcelWriter(path) as writer:
                 print('Generating report...')
                 df = pd.DataFrame.from_dict([self.cat.get_model_card(as_dict=True)]).T.reset_index(drop=False)  # type: ignore
                 df.columns = ['MCT report', f'Generated on {date.today().strftime("%Y/%m/%d")}']  # type: ignore
                 df.to_excel(writer, index=False, sheet_name='medcat_model_card')
                 self.user_stats().to_excel(writer, index=False, sheet_name='user_stats')
-                #self.plot_user_stats().to_excel(writer, index=False, sheet_name='user_stats_plot')
                 print('Evaluating annotations...')
                 if meta_ann:
                     self.full_annotation_df().to_excel(writer, index=False, sheet_name='annotations')
@@ -465,31 +471,3 @@ class MedcatTrainer_export(object):
                     self.meta_anns_concept_summary().to_excel(writer, index=True, sheet_name='meta_annotations_summary')
 
         return print(f"MCT report saved to: {path}")
-
-
-
-
-
-'''
-# TODO: put this useful function somewhere
-    def get_all_children(self, terminology, pt2ch):
-        """
-        Get all children concepts from a specified terminology
-
-        :param terminology:
-        :param pt2ch:
-        :return:
-        """
-        result = []
-        stack = [terminology]
-        while len(stack) != 0:
-            # remove last element from stack
-            current_snomed = stack.pop()
-            current_snomed_parent = pt2ch.get(current_snomed, [])
-            stack.extend(current_snomed_parent)
-            result.append(current_snomed)
-        result = list(set(result))
-        return result
-'''
-
-
