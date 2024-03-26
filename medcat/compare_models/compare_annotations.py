@@ -107,6 +107,8 @@ class AnnotationComparisonType(Enum):
     PARTIAL_OVERLAP_SAME_CONCEPT = auto()
     SAME_SPAN_DIFF_CONCEPT = auto()
     IDENTICAL = auto()
+    SAME_PARENT = auto()
+    SAME_GRANDPARENT = auto()
 
     def in_first(self) -> bool:
         return self != AnnotationComparisonType.SECOND_HAS
@@ -115,7 +117,52 @@ class AnnotationComparisonType(Enum):
         return self != AnnotationComparisonType.FIRST_HAS
 
     @classmethod
-    def determine(cls, d1: Optional[dict], d2: Optional[dict]) -> 'AnnotationComparisonType':
+    def _determine_parent(cls, cui1: str, cui2: str,
+                          pt2ch: Dict) -> Optional['AnnotationComparisonType']:
+        for ch in pt2ch.get(cui1, []):
+            if ch == cui2:
+                return cls.SAME_PARENT
+        return None
+
+    @classmethod
+    def _determine_grandparent(cls, cui1: str, cui2: str,
+                               pt2ch1: Optional[Dict], pt2ch2: Optional[Dict]
+                               ) -> Optional['AnnotationComparisonType']:
+        if pt2ch1:
+            for ch in pt2ch1.get(cui1, []):
+                parent = cls._determine_parent(ch, cui2, pt2ch1)
+                if parent == cls.SAME_PARENT:
+                    return cls.SAME_GRANDPARENT
+        if pt2ch2:
+            for ch in pt2ch2.get(cui2, []):
+                parent = cls._determine_parent(ch, cui1, pt2ch2)
+                if parent == cls.SAME_PARENT:
+                    return cls.SAME_GRANDPARENT
+        return None
+
+    @classmethod
+    def _determine_parents(cls, cui1: str, cui2: str,
+                           pt2ch1: Optional[Dict], pt2ch2: Optional[Dict]
+                           ) -> 'AnnotationComparisonType':
+        if pt2ch1:
+            # check for children of cui1 in pt2ch1
+            parent = cls._determine_parent(cui1, cui2, pt2ch1)
+            if parent:
+                return parent
+        if pt2ch2:
+            # check for children of cui2 in pt2ch2
+            parent = cls._determine_parent(cui2, cui1, pt2ch2)
+            if parent:
+                return parent
+        grandparents = cls._determine_grandparent(cui1, cui2, pt2ch1, pt2ch2)
+        if grandparents:
+            return grandparents
+        return cls.SAME_SPAN_DIFF_CONCEPT
+
+    @classmethod
+    def determine(cls, d1: Optional[dict], d2: Optional[dict],
+                  pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+                  ) -> 'AnnotationComparisonType':
         """Determine the annotated comparison between two annotations.
 
         Annotated entities are assumed to have the following keys:
@@ -126,6 +173,8 @@ class AnnotationComparisonType(Enum):
         Args:
             d1 (Optional[dict]): The entity dict for 1st, or None.
             d2 (Optional[dict]): The entity dict for 2nd, or None.
+            pt2ch1 (Optional[dict]): The parent to child mapping for the 1st.
+            pt2ch2 (Optional[dict]): The parent to child mapping for the 2nd.
 
         Returns:
             AnnotationComparisonType: _description_
@@ -146,7 +195,7 @@ class AnnotationComparisonType(Enum):
         if start1 == start2 and end1 == end2:
             if cui1 == cui2:
                 return cls.IDENTICAL
-            return cls.SAME_SPAN_DIFF_CONCEPT
+            return cls._determine_parents(cui1, cui2, pt2ch1, pt2ch2)
         # semi-overlapping
         len1 = end1 - start1
         len2 = end2 - start2
@@ -174,7 +223,9 @@ class AnnotationPair(BaseModel):
     comparison_type: AnnotationComparisonType
 
     @classmethod
-    def iterate_over(cls, raw1: dict, raw2: dict) -> Iterator['AnnotationPair']:
+    def iterate_over(cls, raw1: dict, raw2: dict,
+                     pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+                     ) -> Iterator['AnnotationPair']:
         while len(raw1) or len(raw2):
             # first key in either dict of entities
             if raw1:
@@ -190,7 +241,7 @@ class AnnotationPair(BaseModel):
                 k2 = None
                 v2 = None
             # corresponding value in either dict of entities
-            comp = AnnotationComparisonType.determine(v1, v2)
+            comp = AnnotationComparisonType.determine(v1, v2, pt2ch1, pt2ch2)
             rem_1st = comp.in_first()
             rem_2nd = comp.in_second()
             if rem_1st:
@@ -217,7 +268,9 @@ class PerDocAnnotationDifferences(BaseModel):
     all_annotation_pairs: List[AnnotationPair] = []
 
     @classmethod
-    def get(cls, d1: dict, d2: dict) -> 'PerDocAnnotationDifferences':
+    def get(cls, d1: dict, d2: dict,
+            pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+            ) -> 'PerDocAnnotationDifferences':
         # creating copies so I can ditch the entries
         # that I've already dealt with
         raw1 = dict(d1['entities'])
@@ -229,7 +282,7 @@ class PerDocAnnotationDifferences(BaseModel):
         #   'snomed', 'id', 'meta_anns']
         comparisons: Dict[AnnotationComparisonType, int] = {}
         all_annotation_pairs: List[AnnotationPair] = []
-        for pair in AnnotationPair.iterate_over(raw1, raw2):
+        for pair in AnnotationPair.iterate_over(raw1, raw2, pt2ch1, pt2ch2):
             comp = pair.comparison_type
             if comp not in comparisons:
                 comparisons[comp] = 0
@@ -239,11 +292,14 @@ class PerDocAnnotationDifferences(BaseModel):
 
 
 class PerAnnotationDifferences(BaseModel):
+    pt2ch1: Optional[Dict]
+    pt2ch2: Optional[Dict]
     per_doc_results: Dict[str, PerDocAnnotationDifferences] = {}
     totals: Optional[Dict[AnnotationComparisonType, int]] = None
 
     def look_at_doc(self, d1: dict, d2: dict, doc_id: str):
-        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(d1, d2)
+        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(d1, d2,
+                                                                       self.pt2ch1, self.pt2ch2)
 
     def finalise(self):
         totals: Dict[AnnotationComparisonType, int] = {}

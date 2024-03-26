@@ -119,8 +119,10 @@ class NoOverlapFarAwaySameCUITests(unittest.TestCase):
     d2 = {"start": 20, "end": 25, "cui": 'C1'}
 
     def setUp(self) -> None:
-        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2)
-        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1)
+        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2,
+                                                                          pt2ch1=None, pt2ch2=None)
+        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1,
+                                                                          pt2ch1=None, pt2ch2=None)
 
     def test_1st_has_12(self):
         self.assertIs(self.c12, self.FIRST)
@@ -145,8 +147,10 @@ class PartialOverlapSameCUITests(unittest.TestCase):
     expect_identical_cui = True
 
     def setUp(self) -> None:
-        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2)
-        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1)
+        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2,
+                                                                          pt2ch1=None, pt2ch2=None)
+        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1,
+                                                                          pt2ch1=None, pt2ch2=None)
         self.expected = self.SAME_CONCEPT if self.expect_identical_cui else self.DIFF_CONCEPT
 
     def test_partial_12(self):
@@ -173,8 +177,10 @@ class IdenticalOverlapSameCUITests(unittest.TestCase):
     expect_identical_cui = True
 
     def setUp(self) -> None:
-        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2)
-        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1)
+        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2,
+                                                                          pt2ch1=None, pt2ch2=None)
+        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1,
+                                                                          pt2ch1=None, pt2ch2=None)
         self.expected = self.SAME if self.expect_identical_cui else self.DIFF
     
     def test_identical_12(self):
@@ -203,8 +209,10 @@ class OverLapOneLargerSameConceptTests(unittest.TestCase):
     expect_identical_cui = True
 
     def setUp(self) -> None:
-        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2)
-        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1)
+        self.c12 = compare_annotations.AnnotationComparisonType.determine(self.d1, self.d2,
+                                                                          pt2ch1=None, pt2ch2=None)
+        self.c21 = compare_annotations.AnnotationComparisonType.determine(self.d2, self.d1,
+                                                                          pt2ch1=None, pt2ch2=None)
         self.expected_12 = self.L1_SC if self.expect_identical_cui else self.L1_DC
         self.expected_21 = self.L2_SC if self.expect_identical_cui else self.L2_DC
 
@@ -236,7 +244,8 @@ class PerDocAnnotationSameTests(unittest.TestCase):
     expected = compare_annotations.AnnotationComparisonType.IDENTICAL
 
     def test_all_same(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2)
+        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2,
+                                                                   pt2ch1=None, pt2ch2=None)
         self.assertEqual(len(pdad.nr_of_comparisons), 1)
         for el in compare_annotations.AnnotationComparisonType:
             with self.subTest(f"{el}"):
@@ -338,11 +347,13 @@ class PerDocAnnotatingUnevenLengthsComplicatedTests(unittest.TestCase):
                   compare_annotations.AnnotationComparisonType.FIRST_HAS: 2}
 
     def test_has_expected_comparison_12(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2)
+        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2,
+                                                                   pt2ch1=None, pt2ch2=None)
         self.assertEqual(pdad.nr_of_comparisons, self.expected12)
 
     def test_has_expected_comparison_21(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d2, self.d1)
+        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d2, self.d1,
+                                                                   pt2ch1=None, pt2ch2=None)
         self.assertEqual(pdad.nr_of_comparisons, self.expected21)
 
 
@@ -365,7 +376,7 @@ class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
     expected_totals = {compare_annotations.AnnotationComparisonType.IDENTICAL: 4}
 
     def setUp(self):
-        self.pad = compare_annotations.PerAnnotationDifferences()
+        self.pad = compare_annotations.PerAnnotationDifferences(pt2ch1=None, pt2ch2=None)
         for nr, ann in enumerate(self.annotations):
             self.pad.look_at_doc(ann, ann, f"{nr}")
         self.pad.finalise()
@@ -421,7 +432,7 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
     ]
 
     def setUp(self):
-        self.pad = compare_annotations.PerAnnotationDifferences()
+        self.pad = compare_annotations.PerAnnotationDifferences(pt2ch1=None, pt2ch2=None)
         for nr, (ann1, ann2) in enumerate(zip(self.annotations1, self.annotations2)):
             self.pad.look_at_doc(ann1, ann2, f"{nr}")
         self.pad.finalise()
@@ -471,3 +482,106 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
                 continue
             with self.subTest(f"{doc_name}: {expected_pair}"):
                 self.assertEqual(list_of_pairs.pop(0), (doc_name, expected_pair))
+
+
+class FindsParentsTest(unittest.TestCase):
+    pt2ch = {
+        # children
+        'c1': ['c10', 'c11'],
+        'c2': ['c20', 'c21', 'c22'],
+        'c3': ['c30'],
+        # grandchildren
+        'c10': ['c100', 'c101'],
+        'c30': ['c300'],
+        # great grandchildren
+        'c300': ['c3001', 'c3002', 'c3003']
+        }
+    annotations = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'c1'}
+                }},
+    ]
+    annotations_child = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'c10'},
+                }},
+    ]
+    annotations_grandchild = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'c101'},
+                }},
+    ]
+    annotations_ggc1 = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'c3'},
+                }},
+    ]
+    annotations_ggc2 = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'c3003'},
+                }},
+    ]
+
+    def _set_up_for(self, anns1: list, anns2: list
+                    ) -> compare_annotations.PerAnnotationDifferences:
+        pad = compare_annotations.PerAnnotationDifferences(pt2ch1=self.pt2ch,
+                                                           pt2ch2=self.pt2ch)
+        for nr, (ann1, ann2) in enumerate(zip(anns1, anns2)):
+            pad.look_at_doc(ann1, ann2, f"{nr}")
+        pad.finalise()
+        return pad
+
+    def setUp(self):
+        # reg->child
+        self.reg_child = self._set_up_for(self.annotations, self.annotations_child)
+        # reg->grandchild
+        self.reg_grandchild = self._set_up_for(self.annotations, self.annotations_grandchild)
+        # child->grandchild
+        self.child_grandchild = self._set_up_for(self.annotations_child, self.annotations_grandchild)
+        # the opposite direction
+        # child->reg
+        self.child_reg = self._set_up_for(self.annotations_child, self.annotations)
+        # grandchild->reg
+        self.grandchild_reg = self._set_up_for(self.annotations_grandchild, self.annotations)
+        # grandchild->child
+        self.grandchild_child = self._set_up_for(self.annotations_grandchild, self.annotations_child)
+        # great-granchild->reg
+        self.ggc_reg = self._set_up_for(self.annotations_ggc1, self.annotations_ggc2)
+
+    def assertCorrectRecognition(self, pad: compare_annotations.PerAnnotationDifferences,
+                                 exp_type: compare_annotations.AnnotationComparisonType):
+        self.assertEqual(len(pad.totals), 1)
+        self.assertIn(exp_type, pad.totals)
+
+    def test_child_recognised(self):
+        self.assertCorrectRecognition(self.reg_child,
+                                      compare_annotations.AnnotationComparisonType.SAME_PARENT)
+
+    def test_child_recognised_reverse(self):
+        self.assertCorrectRecognition(self.child_reg,
+                                      compare_annotations.AnnotationComparisonType.SAME_PARENT)
+
+    def test_grandchild_recognised_from_child(self):
+        self.assertCorrectRecognition(self.child_grandchild,
+                                      compare_annotations.AnnotationComparisonType.SAME_PARENT)
+
+    def test_grandchild_recognised_from_child_reverse(self):
+        self.assertCorrectRecognition(self.grandchild_child,
+                                      compare_annotations.AnnotationComparisonType.SAME_PARENT)
+
+    def test_grandchild_recognised(self):
+        self.assertCorrectRecognition(self.reg_grandchild,
+                                      compare_annotations.AnnotationComparisonType.SAME_GRANDPARENT)
+
+    def test_grandchild_recognised_reverse(self):
+        self.assertCorrectRecognition(self.grandchild_reg,
+                                      compare_annotations.AnnotationComparisonType.SAME_GRANDPARENT)
+
+    def test_great_grandchildren_not_recognised(self):
+        self.assertCorrectRecognition(self.ggc_reg,
+                                      compare_annotations.AnnotationComparisonType.SAME_SPAN_DIFF_CONCEPT)
