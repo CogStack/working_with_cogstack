@@ -36,7 +36,7 @@ def do_counting(cat: CAT, documents: List[Tuple[str, str]]) -> ResultsTally:
 
 def _get_pt2ch(cat: CAT) -> Optional[Dict]:
     if 'pt2ch' in cat.cdb.addl_info:
-        return cat.cbd.addl_inf['pt2ch']
+        return cat.cdb.addl_inf['pt2ch']
     return None
 
 
