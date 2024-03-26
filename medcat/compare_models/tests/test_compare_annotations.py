@@ -28,7 +28,7 @@ class ResultsTallyTests(unittest.TestCase):
         self.res = compare_annotations.ResultsTally(cat_data={"stats": "don't matter"},
                                                cui2name=self._cui2name)
         for entities in self.entities:
-            self.res.count(entities)
+            self.res.count(entities['entities'])
 
     def test_filter_works(self, cuis = {"C1"}):
         self.res.filter_cuis(cuis)

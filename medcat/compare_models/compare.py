@@ -1,4 +1,6 @@
 from typing import List, Tuple, Dict, Set, Callable, Optional
+from functools import partial
+
 from medcat.cat import CAT
 
 import pandas as pd
@@ -20,18 +22,20 @@ def load_documents(file_name: str) -> List[Tuple[str, str]]:
     return list(df.itertuples(index=False))
 
 
-def do_counting(cat: CAT, documents: List[Tuple[str, str]]) -> ResultsTally:
-    def cui2name(cui):
+def do_counting(cat1: CAT, cat2: CAT,
+                ann_diffs: PerAnnotationDifferences) -> ResultsTally:
+    def cui2name(cat, cui):
         if cui in cat.cdb.cui2preferred_name:
             return cat.cdb.cui2preferred_name[cui]
         all_names = cat.cdb.cui2names[cui]
         # longest anme
         return sorted(all_names, key=lambda name: len(name), reverse=True)[0]
-    res = ResultsTally(cat_data=cat.cdb.make_stats(), cui2name=cui2name)
-    for _, doc in tqdm.tqdm(documents):
-        entities = cat.get_entities(doc)
-        res.count(entities)
-    return res
+    res1 = ResultsTally(cat_data=cat1.cdb.make_stats(), cui2name=partial(cui2name, cat1))
+    res2 = ResultsTally(cat_data=cat2.cdb.make_stats(), cui2name=partial(cui2name, cat2))
+    for per_doc in tqdm.tqdm(ann_diffs.per_doc_results.values()):
+        res1.count(per_doc.raw1)
+        res2.count(per_doc.raw2)
+    return res1, res2
 
 
 def _get_pt2ch(cat: CAT) -> Optional[Dict]:
@@ -64,23 +68,20 @@ def get_diffs_for(model_pack_path_1: str,
     if show_progress:
         print("Loading [2]", model_pack_path_2)
     cat2 = CAT.load_model_pack(model_pack_path_2)
+    if show_progress:
+        print("Per annotations diff finding")
+    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
     if cui_filter:
         if show_progress:
             print("Applying filter to CATs:", len(cui_filter), 'CUIs')
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
     if show_progress:
-        print("Counting [1]")
-    res1 = do_counting(cat1, documents)
-    if show_progress:
-        print("Counting [2]")
-    res2 = do_counting(cat2, documents)
+        print("Counting [1&2]")
+    res1, res2 = do_counting(cat1, cat2, ann_diffs)
     if show_progress:
         print("CDB compare")
     cdb_diff = compare_cdbs(cat1.cdb, cat2.cdb)
-    if show_progress:
-        print("Per annotations diff finding")
-    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
     return cdb_diff, res1, res2, ann_diffs
     
 

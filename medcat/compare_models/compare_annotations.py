@@ -36,8 +36,7 @@ class ResultsTally(BaseModel):
                 self.per_type_counts[type_id] = 0
             self.per_type_counts[type_id] += 1
 
-    def count(self, entities: Dict):
-        raw = entities['entities']
+    def count(self, raw: Dict):
         for _, value in raw.items():
             self._count(value)
 
@@ -266,6 +265,8 @@ class AnnotationPair(BaseModel):
 class PerDocAnnotationDifferences(BaseModel):
     nr_of_comparisons: Dict[AnnotationComparisonType, int] = {}
     all_annotation_pairs: List[AnnotationPair] = []
+    raw1: Dict
+    raw2: Dict
 
     @classmethod
     def get(cls, d1: dict, d2: dict,
@@ -288,7 +289,8 @@ class PerDocAnnotationDifferences(BaseModel):
                 comparisons[comp] = 0
             comparisons[comp] += 1
             all_annotation_pairs.append(pair)
-        return cls(nr_of_comparisons=comparisons, all_annotation_pairs=all_annotation_pairs)
+        return cls(nr_of_comparisons=comparisons, all_annotation_pairs=all_annotation_pairs,
+                   raw1=raw1, raw2=raw2)
 
 
 class PerAnnotationDifferences(BaseModel):
