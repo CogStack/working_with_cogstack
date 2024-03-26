@@ -35,6 +35,7 @@ jobs:
       - name: Test
         run: |
           python -m unittest discover
+          python -m unittest discover -s medcat/compare_models
 # TODO - in the future, we might want to add automated tests for notebooks as well
 # though it's not really possible right now since the notebooks are designed
 # in a way that assumes interaction (i.e specifying model pack names)
