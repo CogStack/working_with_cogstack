@@ -2,6 +2,7 @@ from typing import List, Tuple, Dict, Set, Callable, Optional, Union, Iterator
 
 from pydantic import BaseModel
 from enum import Enum, auto
+from copy import deepcopy
 
 
 class ResultsTally(BaseModel):
@@ -225,6 +226,8 @@ class AnnotationPair(BaseModel):
     def iterate_over(cls, raw1: dict, raw2: dict,
                      pt2ch1: Optional[dict], pt2ch2: Optional[dict]
                      ) -> Iterator['AnnotationPair']:
+        raw1 = deepcopy(raw1)
+        raw2 = deepcopy(raw2)
         while len(raw1) or len(raw2):
             # first key in either dict of entities
             if raw1:
