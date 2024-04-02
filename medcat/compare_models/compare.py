@@ -39,16 +39,16 @@ def do_counting(cat1: CAT, cat2: CAT,
 
 
 def _get_pt2ch(cat: CAT) -> Optional[Dict]:
-    if 'pt2ch' in cat.cdb.addl_info:
-        return cat.cdb.addl_info['pt2ch']
-    return None
+    return cat.cdb.addl_info.get("pt2ch", None)
 
 
 def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: List[Tuple[str, str]],
                              show_progress: bool = True) -> PerAnnotationDifferences:
     pt2ch1: Optional[Dict] = _get_pt2ch(cat1)
     pt2ch2: Optional[Dict] = _get_pt2ch(cat2)
-    pad = PerAnnotationDifferences(pt2ch1=pt2ch1, pt2ch2=pt2ch2)
+    pad = PerAnnotationDifferences(pt2ch1=pt2ch1, pt2ch2=pt2ch2,
+                                   model1_cuis=set(cat1.cdb.cui2names),
+                                   model2_cuis=set(cat2.cdb.cui2names))
     for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress):
         pad.look_at_doc(cat1.get_entities(doc), cat2.get_entities(doc), doc_id)
     pad.finalise()

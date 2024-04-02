@@ -105,6 +105,17 @@ class AnnotationComparisonType(Enum):
     OVERLAPP_2ND_LARGER_SAME_CONCEPT = auto()
     PARTIAL_OVERLAP_DIFF_CONCEPT = auto()
     PARTIAL_OVERLAP_SAME_CONCEPT = auto()
+    # NOTE: in the following cases we consider the annotated CUI
+    #       so if the first annotates C101 and that does not exist
+    #       in the second, then SAME_SPAN_CONCEPT_NOT_IN_2ND.
+    #       However, when determininig this, we will do this after
+    #       determining parents/grandparents to that these will be
+    #       given priority (i.e if the 1st annotates a child that
+    #       does not exist in the 2nd, but the parent does exist
+    #       and is specified, then the parent relationship will
+    #       be determined instead of the missing concept one)
+    SAME_SPAN_CONCEPT_NOT_IN_1ST = auto()
+    SAME_SPAN_CONCEPT_NOT_IN_2ND = auto()
     SAME_SPAN_DIFF_CONCEPT = auto()
     IDENTICAL = auto()
     SAME_PARENT = auto()
@@ -141,7 +152,7 @@ class AnnotationComparisonType(Enum):
         return None
 
     @classmethod
-    def _determine_parents(cls, cui1: str, cui2: str,
+    def _determine_same_span(cls, cui1: str, cui2: str,
                            pt2ch1: Optional[Dict], pt2ch2: Optional[Dict]
                            ) -> 'AnnotationComparisonType':
         if pt2ch1:
@@ -160,8 +171,20 @@ class AnnotationComparisonType(Enum):
         return cls.SAME_SPAN_DIFF_CONCEPT
 
     @classmethod
+    def _determine_missing_concept(cls, cui1: str, cui2: str,
+                                   model1_cuis: Set[str],
+                                   model2_cuis: Set[str]
+                                   ) -> 'AnnotationComparisonType':
+        if cui1 not in model2_cuis:
+            return cls.SAME_SPAN_CONCEPT_NOT_IN_2ND
+        elif cui2 not in model1_cuis:
+            return cls.SAME_SPAN_CONCEPT_NOT_IN_1ST
+        return cls.SAME_SPAN_DIFF_CONCEPT
+
+    @classmethod
     def determine(cls, d1: Optional[dict], d2: Optional[dict],
-                  pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+                  pt2ch1: Optional[dict], pt2ch2: Optional[dict],
+                  model1_cuis: Set[str], model2_cuis: Set[str],
                   ) -> 'AnnotationComparisonType':
         """Determine the annotated comparison between two annotations.
 
@@ -175,6 +198,8 @@ class AnnotationComparisonType(Enum):
             d2 (Optional[dict]): The entity dict for 2nd, or None.
             pt2ch1 (Optional[dict]): The parent to child mapping for the 1st.
             pt2ch2 (Optional[dict]): The parent to child mapping for the 2nd.
+            model1_cuis (Set[str]): All CUIs in 1st model.
+            model2_cuis (Set[str]): All CUIs in 2nd model.
 
         Returns:
             AnnotationComparisonType: _description_
@@ -195,7 +220,11 @@ class AnnotationComparisonType(Enum):
         if start1 == start2 and end1 == end2:
             if cui1 == cui2:
                 return cls.IDENTICAL
-            return cls._determine_parents(cui1, cui2, pt2ch1, pt2ch2)
+            same_span = cls._determine_same_span(cui1, cui2, pt2ch1, pt2ch2)
+            if same_span != cls.SAME_SPAN_DIFF_CONCEPT:
+                return same_span
+            # determine concepts missing in one of the models
+            return cls._determine_missing_concept(cui1, cui2, model1_cuis, model2_cuis)
         # semi-overlapping
         len1 = end1 - start1
         len2 = end2 - start2
@@ -224,7 +253,8 @@ class AnnotationPair(BaseModel):
 
     @classmethod
     def iterate_over(cls, raw1: dict, raw2: dict,
-                     pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+                     pt2ch1: Optional[dict], pt2ch2: Optional[dict],
+                     model1_cuis: Set[str], model2_cuis: Set[str],
                      ) -> Iterator['AnnotationPair']:
         raw1 = deepcopy(raw1)
         raw2 = deepcopy(raw2)
@@ -243,7 +273,8 @@ class AnnotationPair(BaseModel):
                 k2 = None
                 v2 = None
             # corresponding value in either dict of entities
-            comp = AnnotationComparisonType.determine(v1, v2, pt2ch1, pt2ch2)
+            comp = AnnotationComparisonType.determine(v1, v2, pt2ch1, pt2ch2,
+                                                      model1_cuis, model2_cuis)
             rem_1st = comp.in_first()
             rem_2nd = comp.in_second()
             if rem_1st:
@@ -273,7 +304,8 @@ class PerDocAnnotationDifferences(BaseModel):
 
     @classmethod
     def get(cls, d1: dict, d2: dict,
-            pt2ch1: Optional[dict], pt2ch2: Optional[dict]
+            pt2ch1: Optional[dict], pt2ch2: Optional[dict],
+            model1_cuis: Set[str], model2_cuis: Set[str],
             ) -> 'PerDocAnnotationDifferences':
         # creating copies so I can ditch the entries
         # that I've already dealt with
@@ -286,7 +318,8 @@ class PerDocAnnotationDifferences(BaseModel):
         #   'snomed', 'id', 'meta_anns']
         comparisons: Dict[AnnotationComparisonType, int] = {}
         all_annotation_pairs: List[AnnotationPair] = []
-        for pair in AnnotationPair.iterate_over(raw1, raw2, pt2ch1, pt2ch2):
+        for pair in AnnotationPair.iterate_over(raw1, raw2, pt2ch1, pt2ch2,
+                                                model1_cuis, model2_cuis):
             comp = pair.comparison_type
             if comp not in comparisons:
                 comparisons[comp] = 0
@@ -297,6 +330,8 @@ class PerDocAnnotationDifferences(BaseModel):
 
 
 class PerAnnotationDifferences(BaseModel):
+    model1_cuis: Set[str]
+    model2_cuis: Set[str]
     pt2ch1: Optional[Dict]
     pt2ch2: Optional[Dict]
     per_doc_results: Dict[str, PerDocAnnotationDifferences] = {}
@@ -304,7 +339,9 @@ class PerAnnotationDifferences(BaseModel):
 
     def look_at_doc(self, d1: dict, d2: dict, doc_id: str):
         self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(d1, d2,
-                                                                       self.pt2ch1, self.pt2ch2)
+                                                                       self.pt2ch1, self.pt2ch2,
+                                                                       self.model1_cuis,
+                                                                       self.model2_cuis)
 
     def finalise(self):
         totals: Dict[AnnotationComparisonType, int] = {}
