@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set, Callable, Optional
+from typing import List, Tuple, Dict, Set, Optional, Union
 from functools import partial
 
 from medcat.cat import CAT
@@ -55,10 +55,16 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: List[Tuple[str, st
     return pad
 
 
+def load_cui_filter(filter_file: str) -> Set[str]:
+    with open(filter_file) as f:
+        str_list = f.read().split(',')
+    return set(item.strip() for item in str_list)
+
+
 def get_diffs_for(model_pack_path_1: str,
                   model_pack_path_2: str,
                   documents_file: str,
-                  cui_filter: Optional[Set[str]] = None,
+                  cui_filter: Optional[Union[Set[str], str]] = None,
                   show_progress: bool = True
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     documents = load_documents(documents_file)
@@ -70,12 +76,14 @@ def get_diffs_for(model_pack_path_1: str,
     cat2 = CAT.load_model_pack(model_pack_path_2)
     if show_progress:
         print("Per annotations diff finding")
-    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
     if cui_filter:
+        if isinstance(cui_filter, str):
+            cui_filter = load_cui_filter(cui_filter)
         if show_progress:
             print("Applying filter to CATs:", len(cui_filter), 'CUIs')
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
+    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
     if show_progress:
         print("Counting [1&2]")
     res1, res2 = do_counting(cat1, cat2, ann_diffs)
