@@ -6,6 +6,7 @@ from copy import deepcopy
 
 
 class ResultsTally(BaseModel):
+    pt2ch: Optional[Dict[str, Set[str]]]
     cat_data: dict
     cui2name: Callable[[str], str]
     total_count = 0
@@ -51,13 +52,37 @@ class ResultsTally(BaseModel):
         }
         return summary
 
-    def get_for_cui(self, cui: str) -> dict:
+    def _get_for_cui_recusive(self, cui: str, include_children: int = 0
+                              ) -> Tuple[List[str], List[int], List[float], Set[str]]:
+        all_names = [self.cui2name(cui), ]
+        all_counts = [self.per_cui_count.get(cui, 0), ]
+        all_accuracies = [self.per_cui_acc.get(cui, 0), ]
+        all_forms = self.per_cui_forms.get(cui, set())
+        if include_children == 0 or not self.pt2ch:
+            return all_names, all_counts, all_accuracies, all_forms
+        for child in self.pt2ch.get(cui, []):
+            child_names, child_counts, child_accs, child_forms = self._get_for_cui_recusive(child, include_children-1)
+            all_names.extend(child_names)
+            all_counts.extend(child_counts)
+            all_accuracies.extend(child_accs)
+            all_forms.update(child_forms)
+        return all_names, all_counts, all_accuracies, all_forms
+
+
+    def get_for_cui(self, cui: str, include_children: int = 0) -> dict:
         if cui not in self.per_cui_count:
             return {"name": "N/A", "count": "N/A", "acc": "N/A", "forms": "N/A"}
-        return {"name": self.cui2name(cui),
-                "count": self.per_cui_count[cui],
-                "acc": self.per_cui_acc[cui],
-                "forms": len(self.per_cui_forms[cui])}
+        all_names, all_counts, all_accuracies, all_forms = self._get_for_cui_recusive(cui, include_children)
+        names = f"{all_names[0]}"
+        if len(all_names) > 1:
+            names += f" ({', '.join(all_names[1:])})"
+        counts = sum(all_counts)
+        accuracies = sum(all_accuracies)
+        return {"name": names,
+                "count": counts,
+                "acc": accuracies,
+                "forms": len(all_forms)}
+
 
     def _remove_cui(self, cui: str) -> None:
         # TODO - this could potentially use all fields that start with `per_cui`

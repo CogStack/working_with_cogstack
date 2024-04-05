@@ -30,8 +30,10 @@ def do_counting(cat1: CAT, cat2: CAT,
         all_names = cat.cdb.cui2names[cui]
         # longest anme
         return sorted(all_names, key=lambda name: len(name), reverse=True)[0]
-    res1 = ResultsTally(cat_data=cat1.cdb.make_stats(), cui2name=partial(cui2name, cat1))
-    res2 = ResultsTally(cat_data=cat2.cdb.make_stats(), cui2name=partial(cui2name, cat2))
+    res1 = ResultsTally(pt2ch=_get_pt2ch(cat1), cat_data=cat1.cdb.make_stats(),
+                        cui2name=partial(cui2name, cat1))
+    res2 = ResultsTally(pt2ch=_get_pt2ch(cat2), cat_data=cat2.cdb.make_stats(),
+                        cui2name=partial(cui2name, cat2))
     for per_doc in tqdm.tqdm(ann_diffs.per_doc_results.values()):
         res1.count(per_doc.raw1)
         res2.count(per_doc.raw2)
