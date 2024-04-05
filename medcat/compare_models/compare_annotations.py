@@ -74,8 +74,11 @@ class ResultsTally(BaseModel):
             return {"name": "N/A", "count": "N/A", "acc": "N/A", "forms": "N/A"}
         all_names, all_counts, all_accuracies, all_forms = self._get_for_cui_recusive(cui, include_children)
         names = f"{all_names[0]}"
-        if len(all_names) > 1:
+        nr_of_names = len(all_names)
+        if 4 > nr_of_names > 1:
             names += f" ({', '.join(all_names[1:])})"
+        elif nr_of_names > 1:
+            names += f" (and {len(all_names) - 1} children)"
         counts = sum(all_counts)
         accuracies = sum(all_accuracies)
         return {"name": names,
