@@ -473,12 +473,15 @@ class PerAnnotationDifferences(BaseModel):
         doc_id: the ID of the document for this annotation
         text: the text (`span_char_limit` both ways, or the entire text if None)
         ann1: the annotation for model 1
-        ann2: teh annotation for model 2
+        ann2: the annotation for model 2
+
+        NOTE: One of the annotations in each line may be None (NaN).
+              This happens when one of the model did not annotate that span.
 
         Args:
             csv_file (str): The csv file to write to.
-            docs (Optional[Iterable[str]], optional): _description_. Defaults to None.
-            span_char_limit (Optional[int], optional): _description_. Defaults to 200.
+            docs (Optional[Iterable[str]], optional): The documents to include (or all). Defaults to None.
+            span_char_limit (Optional[int], optional): The char span limit either side (or all if None). Defaults to 200.
         """
         if docs is None:
             docs = set(self.per_doc_results)
