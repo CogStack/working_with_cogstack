@@ -412,7 +412,7 @@ class PerAnnotationDifferences(BaseModel):
 
     def iter_document_annotations(self, docs: Optional[Iterable[str]] = None,
                                   omit_identical: bool = True
-                                  ) -> Iterator[Tuple[str, str, Dict, Dict]]:
+                                  ) -> Iterator[Tuple[str, str, Optional[Dict], Optional[Dict]]]:
         """Iterate over document annotations (including raw text).
 
         Args:
@@ -432,8 +432,8 @@ class PerAnnotationDifferences(BaseModel):
                 yield doc, pdad.raw_text, pair.one, pair.two
 
     def _get_text(self, raw_text: str, span_char_limit: Optional[int],
-                  ann1: dict, ann2: dict,
-                 ) -> Iterator[Tuple[str, Dict, Dict]]:
+                  ann1: Optional[dict], ann2: Optional[dict],
+                 ) -> str:
         if span_char_limit is None:
             text = raw_text
         else:
@@ -462,7 +462,7 @@ class PerAnnotationDifferences(BaseModel):
     def _to_raw(self, docs: Set[str],
                 span_char_limit: Optional[int] = 200
                 ) -> List[Tuple[str, str, str, str]]:
-        data = []
+        data: List[Tuple[str, str, str, str]] = []
         for doc_id, raw_text, ann1, ann2 in self.iter_document_annotations(docs, omit_identical=False):
             text = self._get_text(raw_text, span_char_limit=span_char_limit, ann1=ann1, ann2=ann2)
             # convert annotation dicts to json
