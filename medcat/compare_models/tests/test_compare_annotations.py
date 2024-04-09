@@ -786,3 +786,27 @@ class PerAnnotationCSVTests(unittest.TestCase):
         df = pd.read_csv(self.file)
         self.assert_can_recreate_dicts(df, "ann1")
         self.assert_can_recreate_dicts(df, "ann2")
+
+    def assert_annotations_remain_same(self, df: pd.DataFrame, column: str,
+                                       expected = list):
+        expected = [value for part in expected for value in part["entities"].values()]
+        series = df[column]
+        anns = [v for _, v in series[series.notnull()].items() if v == v]
+        anns = [eval(v) for v in anns]
+        # remove raw starts (additions)
+        # NOTE: this only works so far since the span is greater
+        #       than the document length.
+        #       Otherwise, I'd need to read the `-raw` parts and
+        #       write them to the correspoding spot
+        for v in anns:
+            del v['start-raw']
+            del v['end-raw']
+        self.assertEqual(len(anns), len(expected))
+        for nr, (got, expect) in enumerate(zip(anns, expected)):
+            with self.subTest(f"Nr: {nr}"):
+                self.assertEqual(got, expect)
+
+    def test_annotations_remain_same(self):
+        df = pd.read_csv(self.file)
+        self.assert_annotations_remain_same(df, 'ann1', self.annotations1)
+        self.assert_annotations_remain_same(df, 'ann2', self.annotations2)

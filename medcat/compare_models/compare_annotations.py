@@ -450,6 +450,13 @@ class PerAnnotationDifferences(BaseModel):
             min_char_nr = max(min(start1, start2) - span_char_limit, 0)
             max_char_nr = min(max(end1, end2) + span_char_limit, len(raw_text) + 1)
             text = raw_text[min_char_nr: max_char_nr]
+            # update start and end chars so that they match the new text
+            if ann1:
+                ann1['start'], ann1['end'] = start1 - min_char_nr, end1 - min_char_nr
+                ann1['start-raw'], ann1['end-raw'] = start1, end1
+            if ann2:
+                ann2['start'], ann2['end'] = start2 - min_char_nr, end2 - min_char_nr
+                ann2['start-raw'], ann2['end-raw'] = start2, end2
         return text
 
     def _to_raw(self, docs: Set[str],
