@@ -1,6 +1,9 @@
 import compare_annotations
 
 import unittest
+import tempfile
+import os
+import pandas as pd
 
 
 # helper class for substituting @classmethod and @property
@@ -315,7 +318,7 @@ class PerDocAnnotationSameTests(unittest.TestCase):
         return _get_cuis(cls)
 
     def test_all_same(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2,
+        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d1, self.d2,
                                                                    pt2ch1=None, pt2ch2=None,
                                                                    model1_cuis=self.cuis,
                                                                    model2_cuis=self.cuis)
@@ -424,14 +427,14 @@ class PerDocAnnotatingUnevenLengthsComplicatedTests(unittest.TestCase):
         return _get_cuis(cls)
 
     def test_has_expected_comparison_12(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d1, self.d2,
+        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d1, self.d2,
                                                                    pt2ch1=None, pt2ch2=None,
                                                                    model1_cuis=self.cuis,
                                                                    model2_cuis=self.cuis)
         self.assertEqual(pdad.nr_of_comparisons, self.expected12)
 
     def test_has_expected_comparison_21(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get(self.d2, self.d1,
+        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d2, self.d1,
                                                                    pt2ch1=None, pt2ch2=None,
                                                                    model1_cuis=self.cuis,
                                                                    model2_cuis=self.cuis)
@@ -465,7 +468,7 @@ class PerAnnotationSameDifferencesIdenticalTests(unittest.TestCase):
                                                                 model1_cuis=self.cuis,
                                                                 model2_cuis=self.cuis)
         for nr, ann in enumerate(self.annotations):
-            self.pad.look_at_doc(ann, ann, f"{nr}")
+            self.pad.look_at_doc(ann, ann, f"{nr}", "")
         self.pad.finalise()
 
     def test_identical(self):
@@ -527,7 +530,7 @@ class PerAnnotationSomeDifferencesIdenticalTests(unittest.TestCase):
                                                                 model1_cuis=self.cuis,
                                                                 model2_cuis=self.cuis)
         for nr, (ann1, ann2) in enumerate(zip(self.annotations1, self.annotations2)):
-            self.pad.look_at_doc(ann1, ann2, f"{nr}")
+            self.pad.look_at_doc(ann1, ann2, f"{nr}", "")
         self.pad.finalise()
 
     def test_identical(self):
@@ -631,7 +634,7 @@ class FindsParentsTest(unittest.TestCase):
                                                            model1_cuis=self.cuis,
                                                            model2_cuis=self.cuis)
         for nr, (ann1, ann2) in enumerate(zip(anns1, anns2)):
-            pad.look_at_doc(ann1, ann2, f"{nr}")
+            pad.look_at_doc(ann1, ann2, f"{nr}", "")
         pad.finalise()
         return pad
 
@@ -684,3 +687,102 @@ class FindsParentsTest(unittest.TestCase):
     def test_great_grandchildren_not_recognised(self):
         self.assertCorrectRecognition(self.ggc_reg,
                                       compare_annotations.AnnotationComparisonType.SAME_SPAN_CONCEPT_NOT_IN_2ND)
+
+
+class PerAnnotationCSVTests(unittest.TestCase):
+    docs = [
+        # doc1    10 ...        25
+        "Some doc. C1           C1 and some text "
+        #40 ...        55
+        "C2            C2 and some more",
+        # doc2      12 ...  22
+        "Some docum C1      C1 and some text and "
+        #  40 ...   52
+        "  C2       C2 and some more             "
+        #80 ...88
+        "C3    C3 anf final"
+    ]
+    annotations1 = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'C1'},
+            "1": {"start": 40, "end": 55, "cui": 'C2'}
+                }},
+        # doc2
+        {"entities": {
+            "0": {"start": 12, "end": 22, "cui": 'C1'},
+            "1": {"start": 42, "end": 52, "cui": 'C2'}
+                }},
+    ]
+    annotations2 = [
+        # doc1
+        {"entities": {
+            "0": {"start": 10, "end": 25, "cui": 'C1'},
+            "1": {"start": 40, "end": 55, "cui": 'C2'}
+                }},
+        # doc2
+        {"entities": {
+            "0": {"start": 80, "end": 88, "cui": 'C3'},
+        }},
+    ]
+    temp_folder = tempfile.TemporaryDirectory()
+    file_name = 'temp_out.csv'
+    file = os.path.join(temp_folder.name, file_name)
+
+    @classproperty
+    def cuis(cls) -> set:
+        return _get_cuis(cls, start_char="annotations")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pad = compare_annotations.PerAnnotationDifferences(pt2ch1=None,
+                                                               pt2ch2=None,
+                                                               model1_cuis=cls.cuis,
+                                                               model2_cuis=cls.cuis)
+        for doc_nr, (doc, ents1, ents2) in enumerate(zip(cls.docs, cls.annotations1, cls.annotations2)):
+            cls.pad.look_at_doc(ents1, ents2, f"doc_{doc_nr}", doc)
+        cls.pad.finalise()
+
+    def setUp(self) -> None:
+        self.pad.to_csv(self.file)
+
+    def tearDown(self) -> None:
+        os.remove(self.file)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_folder.cleanup()
+
+    def test_creates_csv(self):
+        self.assertTrue(os.path.exists(self.file))
+
+    def test_file_can_be_read(self):
+        df = pd.read_csv(self.file)
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_file_has_columns(self,
+                              columns = ["doc_id", "text", "ann1", "ann2"]):
+        df = pd.read_csv(self.file)
+        self.assertEqual(len(columns), len(df.columns))
+        for col in columns:
+            with self.subTest(f"Column: {col}"):
+                self.assertIn(col, df.columns)
+
+    def test_file_has_annotations(self, exp_total = 5):
+        df = pd.read_csv(self.file)
+        self.assertEqual(len(df.index), exp_total)
+
+    def assert_can_recreate_dicts(self, df: pd.DataFrame, column: str):
+        with self.subTest(f"Col: {column}"):
+            series = df[column]
+            for _, val in series.items():
+                if not val or val != val:
+                    # ingore NaN / None
+                    continue
+                d = eval(val)
+                self.assertIsInstance(d, dict)
+
+    def test_can_recreate_dicts(self):
+        df = pd.read_csv(self.file)
+        self.assert_can_recreate_dicts(df, "ann1")
+        self.assert_can_recreate_dicts(df, "ann2")

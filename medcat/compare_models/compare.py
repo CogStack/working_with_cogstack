@@ -52,7 +52,7 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: List[Tuple[str, st
                                    model1_cuis=set(cat1.cdb.cui2names),
                                    model2_cuis=set(cat2.cdb.cui2names))
     for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress):
-        pad.look_at_doc(cat1.get_entities(doc), cat2.get_entities(doc), doc_id)
+        pad.look_at_doc(cat1.get_entities(doc), cat2.get_entities(doc), doc_id, doc)
     pad.finalise()
     return pad
 

@@ -1,8 +1,11 @@
-from typing import List, Tuple, Dict, Set, Callable, Optional, Union, Iterator
+from typing import List, Tuple, Dict, Set, Callable, Optional, Union, Iterator, Iterable
 
 from pydantic import BaseModel
 from enum import Enum, auto
 from copy import deepcopy
+
+import pandas as pd
+import json
 
 
 class ResultsTally(BaseModel):
@@ -327,11 +330,12 @@ class AnnotationPair(BaseModel):
 class PerDocAnnotationDifferences(BaseModel):
     nr_of_comparisons: Dict[AnnotationComparisonType, int] = {}
     all_annotation_pairs: List[AnnotationPair] = []
+    raw_text: str
     raw1: Dict
     raw2: Dict
 
     @classmethod
-    def get(cls, d1: dict, d2: dict,
+    def get(cls, raw_text: str, d1: dict, d2: dict,
             pt2ch1: Optional[dict], pt2ch2: Optional[dict],
             model1_cuis: Set[str], model2_cuis: Set[str],
             ) -> 'PerDocAnnotationDifferences':
@@ -354,7 +358,7 @@ class PerDocAnnotationDifferences(BaseModel):
             comparisons[comp] += 1
             all_annotation_pairs.append(pair)
         return cls(nr_of_comparisons=comparisons, all_annotation_pairs=all_annotation_pairs,
-                   raw1=raw1, raw2=raw2)
+                   raw1=raw1, raw2=raw2, raw_text=raw_text)
 
 
 class PerAnnotationDifferences(BaseModel):
@@ -365,8 +369,8 @@ class PerAnnotationDifferences(BaseModel):
     per_doc_results: Dict[str, PerDocAnnotationDifferences] = {}
     totals: Optional[Dict[AnnotationComparisonType, int]] = None
 
-    def look_at_doc(self, d1: dict, d2: dict, doc_id: str):
-        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(d1, d2,
+    def look_at_doc(self, d1: dict, d2: dict, doc_id: str, raw_text: str):
+        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(raw_text, d1, d2,
                                                                        self.pt2ch1, self.pt2ch2,
                                                                        self.model1_cuis,
                                                                        self.model2_cuis)
@@ -381,7 +385,7 @@ class PerAnnotationDifferences(BaseModel):
         self.totals = totals
 
     def iter_ann_pairs(self,
-                       docs: Optional[List[str]] = None,
+                       docs: Optional[Iterable[str]] = None,
                        omit_identical: bool = True) -> Iterator[Tuple[str, AnnotationPair]]:
         """ITerate over annotation pairs, potentially only for a specific subset of documents.
 
@@ -392,8 +396,8 @@ class PerAnnotationDifferences(BaseModel):
         they will be ignored.
 
         Args:
-            docs (Optional[List[str]], optional): The document IDs to use. Defaults to None.
-            omit_identical (bool): Whether to omit identical annotations. Defaults to True.
+            docs (Optional[Iterable[str]], optional): The document IDs to use. Defaults to None.
+            omit_identical (bool, optional): Whether to omit identical annotations. Defaults to True.
 
         Yields:
             Iterator[Tuple[str, AnnotationPair]]: An iteration of document name and annotation pair.
@@ -405,3 +409,81 @@ class PerAnnotationDifferences(BaseModel):
                 if omit_identical and pair.comparison_type == AnnotationComparisonType.IDENTICAL:
                     continue
                 yield doc, pair
+
+    def iter_document_annotations(self, docs: Optional[Iterable[str]] = None,
+                                  omit_identical: bool = True
+                                  ) -> Iterator[Tuple[str, str, Dict, Dict]]:
+        """Iterate over document annotations (including raw text).
+
+        Args:
+            docs (Optional[Iterable[str]], optional): The documents to iterate over (or all). Defaults to None.
+            omit_identical (bool, optional): Whether to omit identical annotations. Defaults to True.
+
+        Yields:
+            Iterator[Tuple[str, str, Dict, Dict]]:
+                The document ID, the raw text, the annotations for model 1, the annotaitons for model 2
+        """
+        targets = [(doc, self.per_doc_results[doc]) for doc in self.per_doc_results
+                    if docs is None or doc in docs]
+        for doc, pdad in targets:
+            for pair in pdad.all_annotation_pairs:
+                if omit_identical and pair.comparison_type == AnnotationComparisonType.IDENTICAL:
+                    continue
+                yield doc, pdad.raw_text, pair.one, pair.two
+
+    def _get_text(self, raw_text: str, span_char_limit: Optional[int],
+                  ann1: dict, ann2: dict,
+                 ) -> Iterator[Tuple[str, Dict, Dict]]:
+        if span_char_limit is None:
+            text = raw_text
+        else:
+            if ann1:
+                start1, end1 = ann1['start'], ann1['end']
+            else:
+                start1, end1 = -1, -1
+            if ann2:
+                start2, end2 = ann2['start'], ann2['end']
+                if not ann1:
+                    start1, end1 = start2, end2
+            else:
+                start2, end2 = start1, end1
+            min_char_nr = max(min(start1, start2) - span_char_limit, 0)
+            max_char_nr = min(max(end1, end2) + span_char_limit, len(raw_text) + 1)
+            text = raw_text[min_char_nr: max_char_nr]
+        return text
+
+    def _to_raw(self, docs: Set[str],
+                span_char_limit: Optional[int] = 200
+                ) -> List[Tuple[str, str, Dict, Dict]]:
+        data = []
+        for doc_id, raw_text, ann1, ann2 in self.iter_document_annotations(docs, omit_identical=False):
+            text = self._get_text(raw_text, span_char_limit=span_char_limit, ann1=ann1, ann2=ann2)
+            # convert annotation dicts to json
+            data.append((doc_id, text, json.dumps(ann1), json.dumps(ann2)))
+        return data
+
+    def to_csv(self, csv_file: str,
+               docs: Optional[Iterable[str]] = None,
+               span_char_limit: Optional[int] = 200) -> None:
+        """Generates a CSV file based on the results.
+
+        Each annotation pair creates a line in the CSV.
+
+        The CSV file has the following columns:
+        doc_id: the ID of the document for this annotation
+        text: the text (`span_char_limit` both ways, or the entire text if None)
+        ann1: the annotation for model 1
+        ann2: teh annotation for model 2
+
+        Args:
+            csv_file (str): The csv file to write to.
+            docs (Optional[Iterable[str]], optional): _description_. Defaults to None.
+            span_char_limit (Optional[int], optional): _description_. Defaults to 200.
+        """
+        if docs is None:
+            docs = set(self.per_doc_results)
+        else:
+            docs = set(docs)
+        data = self._to_raw(docs, span_char_limit=span_char_limit)
+        df = pd.DataFrame(data, columns=["doc_id", "text", "ann1", "ann2"])
+        df.to_csv(csv_file, index=False)
