@@ -461,7 +461,7 @@ class PerAnnotationDifferences(BaseModel):
 
     def _to_raw(self, docs: Set[str],
                 span_char_limit: Optional[int] = 200
-                ) -> List[Tuple[str, str, Dict, Dict]]:
+                ) -> List[Tuple[str, str, str, str]]:
         data = []
         for doc_id, raw_text, ann1, ann2 in self.iter_document_annotations(docs, omit_identical=False):
             text = self._get_text(raw_text, span_char_limit=span_char_limit, ann1=ann1, ann2=ann2)
