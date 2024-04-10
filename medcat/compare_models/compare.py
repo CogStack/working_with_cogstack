@@ -63,11 +63,24 @@ def load_cui_filter(filter_file: str) -> Set[str]:
     return set(item.strip() for item in str_list)
 
 
+def _add_all_children(cat: CAT, cui_filter: Set[str], include_children: int) -> None:
+    if include_children <= 0:
+        return
+    if "pt2ch" not in cat.cdb.addl_info:
+        return
+    pt2ch = cat.cdb.addl_info["pt2ch"]
+    children = set(ch for cui in cui_filter for ch in pt2ch.get(cui, []))
+    if include_children > 1:
+        _add_all_children(cat, children, include_children=include_children-1)
+    cui_filter.update(children)
+
+
 def get_diffs_for(model_pack_path_1: str,
                   model_pack_path_2: str,
                   documents_file: str,
                   cui_filter: Optional[Union[Set[str], str]] = None,
-                  show_progress: bool = True
+                  show_progress: bool = True,
+                  include_children_in_filter: Optional[int] = None,
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     documents = load_documents(documents_file)
     if show_progress:
@@ -83,6 +96,11 @@ def get_diffs_for(model_pack_path_1: str,
             cui_filter = load_cui_filter(cui_filter)
         if show_progress:
             print("Applying filter to CATs:", len(cui_filter), 'CUIs')
+        if include_children_in_filter:
+            if show_progress:
+                print("Adding all children of", include_children_in_filter,
+                      "or lower level from first model")
+            _add_all_children(cat1, cui_filter, include_children_in_filter)
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
     ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
