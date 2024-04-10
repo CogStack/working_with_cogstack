@@ -111,7 +111,6 @@ def get_diffs_for(model_pack_path_1: str,
         print("CDB compare")
     cdb_diff = compare_cdbs(cat1.cdb, cat2.cdb)
     return cdb_diff, res1, res2, ann_diffs
-    
 
 
 def main(mpn1: str, mpn2: str, documents_file: str):
