@@ -102,7 +102,12 @@ def get_diffs_for(model_pack_path_1: str,
                       "or lower level from first model")
             _add_all_children(cat1, cui_filter, include_children_in_filter)
             if show_progress:
-                print("Now have a total of", len(cui_filter), "CUIs")
+                print("After adding children from 1st model have a total of",
+                      len(cui_filter), "CUIs")
+            _add_all_children(cat2, cui_filter, include_children_in_filter)
+            if show_progress:
+                print("After adding children from 2nd model have a total of",
+                      len(cui_filter), "CUIs")
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
     ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
