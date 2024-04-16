@@ -1,5 +1,6 @@
 from typing import List, Tuple, Dict, Set, Optional, Union
 from functools import partial
+import glob
 
 from medcat.cat import CAT
 
@@ -75,12 +76,25 @@ def _add_all_children(cat: CAT, cui_filter: Set[str], include_children: int) -> 
     cui_filter.update(children)
 
 
+def load_and_train(model_pack_path: str, mct_export_path: str) -> CAT:
+    cat = CAT.load_model_pack(model_pack_path)
+    # NOTE: Allowing mct_export_path to contain wildcat ("*").
+    #       And in such a case, iterating over all matching files
+    if "*" not in mct_export_path:
+        cat.train_supervised_from_json(mct_export_path)
+    else:
+        for file in glob.glob(mct_export_path):
+            cat.train_supervised_from_json(file)
+    return cat
+
+
 def get_diffs_for(model_pack_path_1: str,
                   model_pack_path_2: str,
                   documents_file: str,
                   cui_filter: Optional[Union[Set[str], str]] = None,
                   show_progress: bool = True,
                   include_children_in_filter: Optional[int] = None,
+                  supervised_train_comparison_model: bool = False,
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     documents = load_documents(documents_file)
     if show_progress:
@@ -88,7 +102,15 @@ def get_diffs_for(model_pack_path_1: str,
     cat1 = CAT.load_model_pack(model_pack_path_1)
     if show_progress:
         print("Loading [2]", model_pack_path_2)
-    cat2 = CAT.load_model_pack(model_pack_path_2)
+    if not supervised_train_comparison_model:
+        cat2 = CAT.load_model_pack(model_pack_path_2)
+    else:
+        if show_progress:
+            print("Reloading model pack 1", model_pack_path_1)
+            print("And subsequently training on", model_pack_path_2)
+            print("This may take a while, depending on the amount of "
+                  "data is being trained on")
+        cat2 = load_and_train(model_pack_path_1, model_pack_path_2)
     if show_progress:
         print("Per annotations diff finding")
     if cui_filter:
