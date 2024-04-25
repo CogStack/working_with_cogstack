@@ -7,6 +7,8 @@ import numbers
 from compare_cdb import compare as CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
 
+from IPython.display import display, Markdown
+
 
 def _get_other_key(key: str) -> str:
     """Get the corresponding paired key.
@@ -50,8 +52,13 @@ def default_formatter(path: str, v1: str, v2: Optional[str] = None) -> str:
     return f"{path:40s}\t{str(v1):40s}\t{str(v2 or ''):40s}"
 
 
+def markdown_formatter(path: str, v1: str, v2: Optional[str] = None) -> str:
+    return f"{path:40s} | {str(v1):40s} | {str(v2 or ''):40s}"
+
+
 def show_dict_deep(d: dict, path: str = '',
-                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter):
+                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
+                   notebook_output: bool = False, do_show: bool = True) -> str:
     """Shows the values key-value pairs of a dict depthwise.
 
     It will show each specific value in the (potentially) nested dict.
@@ -64,9 +71,12 @@ def show_dict_deep(d: dict, path: str = '',
         path (str, optional): The current path. Defaults to ''.
         output_formatter (Callable[[str, str, Optional[str]], str], optional): The output formatter.
             Defaults to default_formatter.
+        notebook_output (bool): Whether to use notebook-specific output. Defaults to False.
+        do_show (bool): Whether to show the output. Defaults to True.
     """
     paired_keys = set(key for key in d if _has_paired_key(d, key))
     key_pairs = [(key1, _get_other_key(key1)) for key1 in paired_keys if key1 < _get_other_key(key1)]
+    total_out = []
     for key, value in d.items():
         if key in paired_keys:
             continue
@@ -77,15 +87,28 @@ def show_dict_deep(d: dict, path: str = '',
         else:
             total_path = key
         if isinstance(value, dict):
-            show_dict_deep(value, path=total_path)
+            cur_out = show_dict_deep(value, path=total_path, output_formatter=output_formatter,
+                                     notebook_output=notebook_output, do_show=False)
+            total_out.append(cur_out)
             continue
-        print(output_formatter(total_path, value, None))
+        text = output_formatter(total_path, value, None)
+        total_out.append(text)
     # for paired keys
     for key1, key2 in key_pairs:
         common_key = key1[:-1]
         total_path = f"{path}.{common_key}" if path else key
-        print(output_formatter(total_path, d[key1], d[key2]))
-
+        text = output_formatter(total_path, d[key1], d[key2])
+        total_out.append(text)
+    all_text = '\n'.join(total_out)
+    if do_show:
+        if notebook_output:
+            # add column markers
+            all_text = "| " + all_text.replace("\n", " |\n| ") + " |"
+            header = '| Path | Value | [Optional] Comparison |\n| ----- | ----- | ----- |\n'
+            display(Markdown(header + all_text))
+        else:
+            print(all_text)
+    return all_text
 
 def _empty_values_recursively(d: dict, cur_depth: int = 0, max_depth: int = 2) -> None:
     for k in set(d.keys()):
@@ -113,7 +136,8 @@ def _get_nulled_copy(d: dict, depth: int = 0) -> dict:
 def compare_dicts(d1: Optional[dict], d2: Optional[dict],
                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
                   ignore_callables: bool = True,
-                  custom_printval_gens: Optional[Dict[str, Callable[[Any], str]]] = None):
+                  custom_printval_gens: Optional[Dict[str, Callable[[Any], str]]] = None,
+                  notebook_output: bool = False):
     """Compares two dicts with identical schemas to oneanother.
 
     This will attempt to unravel dict values in the following way
@@ -133,6 +157,7 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
             The keys are ones that have a custom print value generator.
             And the values are the corresponding custom print value generators.
             Defaults to None (or an empty dict).
+        notebook_output (bool): Whether to use notebook output. Defaults to False.
     raises:
         AssertionError: If the keys of the two dicts differ; or if value types mismatch.
     """
@@ -148,6 +173,7 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
     d1: Dict = d1  # type: ignore
     d2: Dict = d2  # type: ignore
     assert d1.keys() == d2.keys()
+    all_out = []
     for key in d1:
         v1 = d1[key]
         v2 = d2[key]
@@ -210,16 +236,35 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
         else:
             printval1 = str(v1)
             printval2 = str(v2)
-        print(output_formatter(key, printval1, printval2))
+        all_out.append(output_formatter(key, printval1, printval2))
+    all_text = "\n".join(all_out)
+    if notebook_output:
+        # add column markers
+        all_text = "| " + all_text.replace("\n", " |\n| ") + " |"
+        header = '| Path | First | Second |\n| ----- | ----- | ----- |\n'
+        display(Markdown(header + all_text))
+    else:
+        print(all_text)
 
 
 def parse_and_show(cdb_diff: CDBCompareResults, tally1: ResultsTally, tally2: ResultsTally,
                    ann_diffs: PerAnnotationDifferences,
-                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter):
-    print("CDB overall differences:")
-    show_dict_deep(cdb_diff.dict(), output_formatter=output_formatter)
-    print("Now tally differences")
+                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
+                   notebook_output: bool = False):
+    if notebook_output:
+        display(Markdown("# CDB overall differences"))
+    else:
+        print("CDB overall differences:")
+    show_dict_deep(cdb_diff.dict(), output_formatter=output_formatter, notebook_output=notebook_output)
+    if notebook_output:
+        display(Markdown("# Now tally differences"))
+    else:
+        print("Now tally differences")
     gens = {"cat_data": lambda v: str(v)}
-    compare_dicts(tally1.dict(), tally2.dict(), output_formatter=output_formatter, custom_printval_gens=gens)
-    print("Now per-annotation differences:")
+    compare_dicts(tally1.dict(), tally2.dict(), output_formatter=output_formatter, custom_printval_gens=gens,
+                  notebook_output=notebook_output)
+    if notebook_output:
+        display(Markdown("# Now per-annotation differences:"))
+    else:
+        print("Now per-annotation differences:")
     show_dict_deep(ann_diffs.totals, output_formatter=output_formatter)
