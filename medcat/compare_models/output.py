@@ -8,6 +8,20 @@ from compare_cdb import compare as CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
 
 from IPython.display import display, Markdown
+from IPython import get_ipython
+
+
+def is_notebook() -> bool:
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter
 
 
 def _get_other_key(key: str) -> str:
@@ -57,6 +71,7 @@ def markdown_formatter(path: str, v1: str, v2: Optional[str] = None) -> str:
 
 
 def show_dict_deep(d: dict, path: str = '',
+                   auto_output: bool = True,
                    output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
                    notebook_output: bool = False, do_show: bool = True) -> str:
     """Shows the values key-value pairs of a dict depthwise.
@@ -69,13 +84,22 @@ def show_dict_deep(d: dict, path: str = '',
     Args:
         d (dict): The input (potentially nested) dict.
         path (str, optional): The current path. Defaults to ''.
+        auto_output (bool): Whether to automatically determine output.
+            This will prefer regular print statements for a terminal and
+            markdown for a notebook. If set to `True`, other formatting
+            options will be ignored. Defaults to True.
         output_formatter (Callable[[str, str, Optional[str]], str], optional): The output formatter.
             Defaults to default_formatter.
         notebook_output (bool): Whether to use notebook-specific output. Defaults to False.
         do_show (bool): Whether to show the output. Defaults to True.
     """
-    if notebook_output and output_formatter is default_formatter:
-        output_formatter = markdown_formatter
+    if auto_output:
+        if is_notebook():
+            output_formatter = markdown_formatter
+            notebook_output = True
+        else:
+            output_formatter = default_formatter
+            notebook_output = False
     paired_keys = set(key for key in d if _has_paired_key(d, key))
     key_pairs = [(key1, _get_other_key(key1)) for key1 in paired_keys if key1 < _get_other_key(key1)]
     total_out = []
@@ -136,6 +160,7 @@ def _get_nulled_copy(d: dict, depth: int = 0) -> dict:
 
 
 def compare_dicts(d1: Optional[dict], d2: Optional[dict],
+                  auto_output: bool = True,
                   output_formatter: Callable[[str, str, Optional[str]], str] = default_formatter,
                   ignore_callables: bool = True,
                   custom_printval_gens: Optional[Dict[str, Callable[[Any], str]]] = None,
@@ -152,6 +177,10 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
     Args:
         d1 (Optional[dict]): The first dict.
         d2 (Optional[dict]): The second dict.
+        auto_output (bool): Whether to automatically determine output.
+            This will prefer regular print statements for a terminal and
+            markdown for a notebook. If set to `True`, other formatting
+            options will be ignored. Defaults to True.
         output_formatter (Callable[[str, str, Optional[str]], str], optional): The output formatter.
             Defaults to default_formatter.
         ignore_callables (bool): Whether to ignore callable values. Defaults to True.
@@ -163,8 +192,13 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
     raises:
         AssertionError: If the keys of the two dicts differ; or if value types mismatch.
     """
-    if notebook_output and output_formatter is default_formatter:
-        output_formatter = markdown_formatter
+    if auto_output:
+        if is_notebook():
+            output_formatter = markdown_formatter
+            notebook_output = True
+        else:
+            output_formatter = default_formatter
+            notebook_output = False
     if d1 is None and d2 is None:
         raise ValueError("At least one of the two dicts needs to be non-None")
     # latter condition is for mypy
