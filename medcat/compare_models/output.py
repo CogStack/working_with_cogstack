@@ -74,6 +74,8 @@ def show_dict_deep(d: dict, path: str = '',
         notebook_output (bool): Whether to use notebook-specific output. Defaults to False.
         do_show (bool): Whether to show the output. Defaults to True.
     """
+    if notebook_output and output_formatter is default_formatter:
+        output_formatter = markdown_formatter
     paired_keys = set(key for key in d if _has_paired_key(d, key))
     key_pairs = [(key1, _get_other_key(key1)) for key1 in paired_keys if key1 < _get_other_key(key1)]
     total_out = []
@@ -161,6 +163,8 @@ def compare_dicts(d1: Optional[dict], d2: Optional[dict],
     raises:
         AssertionError: If the keys of the two dicts differ; or if value types mismatch.
     """
+    if notebook_output and output_formatter is default_formatter:
+        output_formatter = markdown_formatter
     if d1 is None and d2 is None:
         raise ValueError("At least one of the two dicts needs to be non-None")
     # latter condition is for mypy
