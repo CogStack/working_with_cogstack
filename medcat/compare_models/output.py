@@ -267,4 +267,4 @@ def parse_and_show(cdb_diff: CDBCompareResults, tally1: ResultsTally, tally2: Re
         display(Markdown("# Now per-annotation differences:"))
     else:
         print("Now per-annotation differences:")
-    show_dict_deep(ann_diffs.totals, output_formatter=output_formatter)
+    show_dict_deep(ann_diffs.totals, output_formatter=output_formatter, notebook_output=notebook_output)
