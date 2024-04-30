@@ -287,6 +287,9 @@ class AnnotationPair(BaseModel):
                      pt2ch1: Optional[dict], pt2ch2: Optional[dict],
                      model1_cuis: Set[str], model2_cuis: Set[str],
                      ) -> Iterator['AnnotationPair']:
+        # keep originals
+        _raw1 = raw1
+        _raw2 = raw2
         raw1 = deepcopy(raw1)
         raw2 = deepcopy(raw2)
         while len(raw1) or len(raw2):
@@ -324,6 +327,13 @@ class AnnotationPair(BaseModel):
                                  "in an infinite loop. Happened while"
                                  f"comparing '{k1}' ({v1})"
                                  f"to '{k2}' ({v2})")
+            # using parts from the original dict instead of
+            # the copied one for better memory management
+            # (since the original raw is also being kept in PerDocAnnotationDifferences)
+            if k1 is not None and v1 is not None:
+                v1 = _raw1[k1]
+            if k2 is not None and v2 is not None:
+                v2 = _raw2[k2]
             yield cls(one=v1, two=v2, comparison_type=comp)
 
 
