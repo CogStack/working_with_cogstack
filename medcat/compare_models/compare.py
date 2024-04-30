@@ -98,6 +98,7 @@ def get_diffs_for(model_pack_path_1: str,
                   show_progress: bool = True,
                   include_children_in_filter: Optional[int] = None,
                   supervised_train_comparison_model: bool = False,
+                  keep_raw: bool = True,
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     documents = load_documents(documents_file)
     if show_progress:
@@ -135,7 +136,7 @@ def get_diffs_for(model_pack_path_1: str,
                       len(cui_filter), "CUIs")
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
-    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents)
+    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents, keep_raw=keep_raw)
     if show_progress:
         print("Counting [1&2]")
     res1, res2 = do_counting(cat1, cat2, ann_diffs)
