@@ -827,3 +827,57 @@ class PerAnnotationCSVTests(unittest.TestCase):
         df = pd.read_csv(self.file)
         self.assert_annotations_remain_same(df, 'ann1', self.annotations1)
         self.assert_annotations_remain_same(df, 'ann2', self.annotations2)
+
+
+class DocumentIterationTests(unittest.TestCase):
+    docs = PerAnnotationCSVTests.docs
+    annotations1 = PerAnnotationCSVTests.annotations1
+    annotations2 = PerAnnotationCSVTests.annotations2
+    expected_all = {
+        compare_annotations.AnnotationComparisonType.IDENTICAL: 2,
+        compare_annotations.AnnotationComparisonType.FIRST_HAS: 2,
+        compare_annotations.AnnotationComparisonType.SECOND_HAS: 1
+    }
+
+    @classproperty
+    def cuis(cls) -> set:
+        return _get_cuis(cls, start_char="annotations")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.pad = compare_annotations.PerAnnotationDifferences(pt2ch1=None,
+                                                               pt2ch2=None,
+                                                               model1_cuis=cls.cuis,
+                                                               model2_cuis=cls.cuis)
+        for doc_nr, (doc, ents1, ents2) in enumerate(zip(cls.docs, cls.annotations1, cls.annotations2)):
+            cls.pad.look_at_doc(ents1, ents2, f"doc_{doc_nr}", doc)
+        cls.pad.finalise()
+
+    def assert_filters1(self, comp_type: compare_annotations.AnnotationComparisonType):
+        docs = list(
+            self.pad.iter_document_annotations(types_filter={comp_type})
+        )
+        self.assertEqual(len(docs), self.expected_all[comp_type])
+
+    def assert_filters_many(self, *comp_types: compare_annotations.AnnotationComparisonType):
+        docs = list(
+            self.pad.iter_document_annotations(types_filter=comp_types)
+        )
+        expected_sum = sum(self.expected_all[comp_type] for comp_type in comp_types)
+        self.assertEqual(len(docs), expected_sum)
+
+    def test_all_has_all(self):
+        self.assert_filters_many(*tuple(self.expected_all))
+
+    def test_filters_identical(self):
+        self.assert_filters1(compare_annotations.AnnotationComparisonType.IDENTICAL)
+
+    def test_filters_first_has(self):
+        self.assert_filters1(compare_annotations.AnnotationComparisonType.FIRST_HAS)
+
+    def test_filters_second_has(self):
+        self.assert_filters1(compare_annotations.AnnotationComparisonType.SECOND_HAS)
+
+    def test_filters_problematic(self):
+        self.assert_filters_many(compare_annotations.AnnotationComparisonType.FIRST_HAS,
+                                 compare_annotations.AnnotationComparisonType.SECOND_HAS)
