@@ -319,7 +319,7 @@ class PerDocAnnotationSameTests(unittest.TestCase):
         return _get_cuis(cls)
 
     def setUp(self) -> None:
-        self.pdad = compare_annotations.PerDocAnnotationDifferences.get(self.TEXT, self.d1, self.d2,
+        self.pdad = compare_annotations.PerDocAnnotationDifferences.get("doc0", self.TEXT, self.d1, self.d2,
                                                                         pt2ch1=None, pt2ch2=None,
                                                                         model1_cuis=self.cuis,
                                                                         model2_cuis=self.cuis)
@@ -339,7 +339,7 @@ class PerDocAnnotationSameTests(unittest.TestCase):
         self.assertNotEqual(pdad.raw_text, '')
 
     def test_can_omit_raw(self):
-        pdad = pdad = compare_annotations.PerDocAnnotationDifferences.get(self.TEXT, self.d1, self.d2,
+        pdad = pdad = compare_annotations.PerDocAnnotationDifferences.get("doc0", self.TEXT, self.d1, self.d2,
                                                                           pt2ch1=None, pt2ch2=None,
                                                                           model1_cuis=self.cuis,
                                                                           model2_cuis=self.cuis,
@@ -444,14 +444,14 @@ class PerDocAnnotatingUnevenLengthsComplicatedTests(unittest.TestCase):
         return _get_cuis(cls)
 
     def test_has_expected_comparison_12(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d1, self.d2,
+        pdad = compare_annotations.PerDocAnnotationDifferences.get("doc0", "", self.d1, self.d2,
                                                                    pt2ch1=None, pt2ch2=None,
                                                                    model1_cuis=self.cuis,
                                                                    model2_cuis=self.cuis)
         self.assertEqual(pdad.nr_of_comparisons, self.expected12)
 
     def test_has_expected_comparison_21(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d2, self.d1,
+        pdad = compare_annotations.PerDocAnnotationDifferences.get("doc0", "", self.d2, self.d1,
                                                                    pt2ch1=None, pt2ch2=None,
                                                                    model1_cuis=self.cuis,
                                                                    model2_cuis=self.cuis)

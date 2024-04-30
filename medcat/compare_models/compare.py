@@ -6,10 +6,12 @@ from medcat.cat import CAT
 
 import pandas as pd
 import tqdm
+import tempfile
 
 from compare_cdb import compare as compare_cdbs, CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
 from output import parse_and_show
+from cmp_utils import SaveOptions
 
 
 
@@ -51,10 +53,14 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Iterator[Tuple[str
                              ) -> PerAnnotationDifferences:
     pt2ch1: Optional[Dict] = _get_pt2ch(cat1)
     pt2ch2: Optional[Dict] = _get_pt2ch(cat2)
+    temp_file = tempfile.NamedTemporaryFile()
+    save_opts = SaveOptions(use_db=True, db_file_name=temp_file.name,
+                            clean_callback=temp_file.close)
     pad = PerAnnotationDifferences(pt2ch1=pt2ch1, pt2ch2=pt2ch2,
                                    model1_cuis=set(cat1.cdb.cui2names),
                                    model2_cuis=set(cat2.cdb.cui2names),
-                                   keep_raw=keep_raw)
+                                   keep_raw=keep_raw,
+                                   save_options=save_opts)
     for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress):
         pad.look_at_doc(cat1.get_entities(doc), cat2.get_entities(doc), doc_id, doc)
     pad.finalise()

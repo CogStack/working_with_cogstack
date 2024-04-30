@@ -7,6 +7,8 @@ from copy import deepcopy
 import pandas as pd
 import json
 
+from cmp_utils import SaveOptions, DifferenceDatabase
+
 
 class ResultsTally(BaseModel):
     pt2ch: Optional[Dict[str, Set[str]]]
@@ -339,15 +341,16 @@ class AnnotationPair(BaseModel):
 
 class PerDocAnnotationDifferences(BaseModel):
     nr_of_comparisons: Dict[AnnotationComparisonType, int] = {}
-    all_annotation_pairs: List[AnnotationPair] = []
+    all_annotation_pairs: Union[List[AnnotationPair], Iterable[AnnotationPair]]
     raw_text: str
     raw1: Dict
     raw2: Dict
 
     @classmethod
-    def get(cls, raw_text: str, d1: dict, d2: dict,
+    def get(cls, doc_id: str, raw_text: str, d1: dict, d2: dict,
             pt2ch1: Optional[dict], pt2ch2: Optional[dict],
             model1_cuis: Set[str], model2_cuis: Set[str],
+            save_options: SaveOptions = SaveOptions(),
             keep_raw: bool = True,
             ) -> 'PerDocAnnotationDifferences':
         # creating copies so I can ditch the entries
@@ -360,7 +363,12 @@ class PerDocAnnotationDifferences(BaseModel):
         #   'acc', 'context_similarity', 'start', 'end', 'icd10', 'ontologies',
         #   'snomed', 'id', 'meta_anns']
         comparisons: Dict[AnnotationComparisonType, int] = {}
-        all_annotation_pairs: List[AnnotationPair] = []
+        if save_options.use_db:
+            all_annotation_pairs: DifferenceDatabase = DifferenceDatabase(db_file=save_options.db_file_name,
+                                                                          part=doc_id,
+                                                                          model_type=PerDocAnnotationDifferences)
+        else:
+            all_annotation_pairs = []
         for pair in AnnotationPair.iterate_over(raw1, raw2, pt2ch1, pt2ch2,
                                                 model1_cuis, model2_cuis):
             comp = pair.comparison_type
@@ -379,15 +387,17 @@ class PerAnnotationDifferences(BaseModel):
     model2_cuis: Set[str]
     pt2ch1: Optional[Dict]
     pt2ch2: Optional[Dict]
+    save_options: SaveOptions = SaveOptions()
     per_doc_results: Dict[str, PerDocAnnotationDifferences] = {}
     totals: Optional[Dict[AnnotationComparisonType, int]] = None
     keep_raw: bool = True
 
     def look_at_doc(self, d1: dict, d2: dict, doc_id: str, raw_text: str):
-        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(raw_text, d1, d2,
+        self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(doc_id, raw_text, d1, d2,
                                                                        self.pt2ch1, self.pt2ch2,
                                                                        self.model1_cuis,
                                                                        self.model2_cuis,
+                                                                       self.save_options,
                                                                        self.keep_raw)
 
     def finalise(self):
@@ -512,3 +522,8 @@ class PerAnnotationDifferences(BaseModel):
         data = self._to_raw(docs, span_char_limit=span_char_limit)
         df = pd.DataFrame(data, columns=["doc_id", "text", "ann1", "ann2"])
         df.to_csv(csv_file, index=False)
+
+
+    def __del__(self):
+        if self.save_options.use_db:
+            self.save_options.clean_callback()
