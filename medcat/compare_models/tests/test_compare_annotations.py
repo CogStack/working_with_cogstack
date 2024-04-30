@@ -312,16 +312,20 @@ class PerDocAnnotationSameTests(unittest.TestCase):
     d1 = d
     d2 = d
     expected = compare_annotations.AnnotationComparisonType.IDENTICAL
+    TEXT = "Some TEXT"
 
     @classproperty
     def cuis(cls) -> set:
         return _get_cuis(cls)
 
+    def setUp(self) -> None:
+        self.pdad = compare_annotations.PerDocAnnotationDifferences.get(self.TEXT, self.d1, self.d2,
+                                                                        pt2ch1=None, pt2ch2=None,
+                                                                        model1_cuis=self.cuis,
+                                                                        model2_cuis=self.cuis)
+
     def test_all_same(self):
-        pdad = compare_annotations.PerDocAnnotationDifferences.get("", self.d1, self.d2,
-                                                                   pt2ch1=None, pt2ch2=None,
-                                                                   model1_cuis=self.cuis,
-                                                                   model2_cuis=self.cuis)
+        pdad = self.pdad
         self.assertEqual(len(pdad.nr_of_comparisons), 1)
         for el in compare_annotations.AnnotationComparisonType:
             with self.subTest(f"{el}"):
@@ -329,6 +333,19 @@ class PerDocAnnotationSameTests(unittest.TestCase):
                     self.assertIn(self.expected, pdad.nr_of_comparisons)
                 else:
                     self.assertNotIn(el, pdad.nr_of_comparisons)
+
+    def test_def_keeps_raw(self):
+        pdad = self.pdad
+        self.assertNotEqual(pdad.raw_text, '')
+
+    def test_can_omit_raw(self):
+        pdad = pdad = compare_annotations.PerDocAnnotationDifferences.get(self.TEXT, self.d1, self.d2,
+                                                                          pt2ch1=None, pt2ch2=None,
+                                                                          model1_cuis=self.cuis,
+                                                                          model2_cuis=self.cuis,
+                                                                          keep_raw=False)
+        self.assertEqual(pdad.raw_text, '')
+
 
 class PerDocAnnotationSameSpanDiffCUITests(PerDocAnnotationSameTests):
 
