@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set, Optional, Union
+from typing import List, Tuple, Dict, Set, Optional, Union, Iterator
 from functools import partial
 import glob
 
@@ -13,14 +13,14 @@ from output import parse_and_show
 
 
 
-def load_documents(file_name: str) -> List[Tuple[str, str]]:
+def load_documents(file_name: str) -> Iterator[Tuple[str, str]]:
     with open(file_name) as f:
         df = pd.read_csv(f, names=["id", "text"])
     if df.iloc[0].id == "id" and df.iloc[0].text == "text":
         # removes the header
         # but also messes up the index a little
         df = df.iloc[1:, :]
-    return list(df.itertuples(index=False))
+    yield from df.itertuples(index=False)
 
 
 def do_counting(cat1: CAT, cat2: CAT,
@@ -45,7 +45,7 @@ def _get_pt2ch(cat: CAT) -> Optional[Dict]:
     return cat.cdb.addl_info.get("pt2ch", None)
 
 
-def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: List[Tuple[str, str]],
+def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Iterator[Tuple[str, str]],
                              show_progress: bool = True) -> PerAnnotationDifferences:
     pt2ch1: Optional[Dict] = _get_pt2ch(cat1)
     pt2ch2: Optional[Dict] = _get_pt2ch(cat2)
