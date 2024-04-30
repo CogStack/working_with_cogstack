@@ -338,6 +338,7 @@ class PerDocAnnotationDifferences(BaseModel):
     def get(cls, raw_text: str, d1: dict, d2: dict,
             pt2ch1: Optional[dict], pt2ch2: Optional[dict],
             model1_cuis: Set[str], model2_cuis: Set[str],
+            keep_raw: bool = True,
             ) -> 'PerDocAnnotationDifferences':
         # creating copies so I can ditch the entries
         # that I've already dealt with
@@ -357,6 +358,8 @@ class PerDocAnnotationDifferences(BaseModel):
                 comparisons[comp] = 0
             comparisons[comp] += 1
             all_annotation_pairs.append(pair)
+        if not keep_raw:
+            raw_text = ''
         return cls(nr_of_comparisons=comparisons, all_annotation_pairs=all_annotation_pairs,
                    raw1=raw1, raw2=raw2, raw_text=raw_text)
 
@@ -368,12 +371,14 @@ class PerAnnotationDifferences(BaseModel):
     pt2ch2: Optional[Dict]
     per_doc_results: Dict[str, PerDocAnnotationDifferences] = {}
     totals: Optional[Dict[AnnotationComparisonType, int]] = None
+    keep_raw: bool = True
 
     def look_at_doc(self, d1: dict, d2: dict, doc_id: str, raw_text: str):
         self.per_doc_results[doc_id] = PerDocAnnotationDifferences.get(raw_text, d1, d2,
                                                                        self.pt2ch1, self.pt2ch2,
                                                                        self.model1_cuis,
-                                                                       self.model2_cuis)
+                                                                       self.model2_cuis,
+                                                                       self.keep_raw)
 
     def finalise(self):
         totals: Dict[AnnotationComparisonType, int] = {}
