@@ -436,7 +436,7 @@ class PerAnnotationDifferences(BaseModel):
                 yield doc, pair
 
     def iter_document_annotations(self, docs: Optional[Iterable[str]] = None,
-                                  omit_identical: bool = True
+                                  types_filter: Optional[Set[AnnotationComparisonType]] = None,
                                   ) -> Iterator[Tuple[str, str, Optional[Dict], Optional[Dict]]]:
         """Iterate over document annotations (including raw text).
 
@@ -450,9 +450,11 @@ class PerAnnotationDifferences(BaseModel):
         """
         targets = [(doc, self.per_doc_results[doc]) for doc in self.per_doc_results
                     if docs is None or doc in docs]
+        if types_filter is None:
+            types_filter = set(AnnotationComparisonType)
         for doc, pdad in targets:
             for pair in pdad.all_annotation_pairs:
-                if omit_identical and pair.comparison_type == AnnotationComparisonType.IDENTICAL:
+                if pair.comparison_type not in types_filter:
                     continue
                 yield doc, pdad.raw_text, pair.one, pair.two
 
@@ -485,10 +487,11 @@ class PerAnnotationDifferences(BaseModel):
         return text
 
     def _to_raw(self, docs: Set[str],
-                span_char_limit: Optional[int] = 200
+                types_filter: Set[AnnotationComparisonType],
+                span_char_limit: Optional[int] = 200,
                 ) -> List[Tuple[str, str, str, str]]:
         data: List[Tuple[str, str, str, str]] = []
-        for doc_id, raw_text, ann1, ann2 in self.iter_document_annotations(docs, omit_identical=False):
+        for doc_id, raw_text, ann1, ann2 in self.iter_document_annotations(docs, types_filter):
             text = self._get_text(raw_text, span_char_limit=span_char_limit, ann1=ann1, ann2=ann2)
             # convert annotation dicts to json
             data.append((doc_id, text, json.dumps(ann1), json.dumps(ann2)))
@@ -496,6 +499,7 @@ class PerAnnotationDifferences(BaseModel):
 
     def to_csv(self, csv_file: str,
                docs: Optional[Iterable[str]] = None,
+               types_filter: Optional[Set[AnnotationComparisonType]] = None,
                span_char_limit: Optional[int] = 200) -> None:
         """Generates a CSV file based on the results.
 
@@ -519,7 +523,9 @@ class PerAnnotationDifferences(BaseModel):
             docs = set(self.per_doc_results)
         else:
             docs = set(docs)
-        data = self._to_raw(docs, span_char_limit=span_char_limit)
+        if types_filter is None:
+            types_filter = set(AnnotationComparisonType)
+        data = self._to_raw(docs, types_filter=types_filter, span_char_limit=span_char_limit)
         df = pd.DataFrame(data, columns=["doc_id", "text", "ann1", "ann2"])
         df.to_csv(csv_file, index=False)
 
