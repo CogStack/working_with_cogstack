@@ -366,7 +366,7 @@ class PerDocAnnotationDifferences(BaseModel):
         if save_options.use_db:
             all_annotation_pairs: DifferenceDatabase = DifferenceDatabase(db_file=save_options.db_file_name,
                                                                           part=doc_id,
-                                                                          model_type=PerDocAnnotationDifferences)
+                                                                          model_type=AnnotationPair)
         else:
             all_annotation_pairs = []
         for pair in AnnotationPair.iterate_over(raw1, raw2, pt2ch1, pt2ch2,
