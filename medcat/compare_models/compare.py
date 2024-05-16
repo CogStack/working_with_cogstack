@@ -7,6 +7,7 @@ from medcat.cat import CAT
 import pandas as pd
 import tqdm
 import tempfile
+import os
 
 from compare_cdb import compare as compare_cdbs, CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
@@ -97,6 +98,25 @@ def load_and_train(model_pack_path: str, mct_export_path: str) -> CAT:
     return cat
 
 
+def _validate_input(model_path1: str, model_path2: str, documents_file: str,
+                    cui_filter: Optional[Union[Set[str], str]],
+                    supevised_train_comp: bool):
+    if not os.path.exists(model_path1):
+        raise ValueError(f"No model found at specified path (1st model): {model_path1}")
+    if not os.path.exists(model_path2):
+        path_type = "2nd model" if not supevised_train_comp else "MCT export"
+        raise ValueError(f"No file found at specified path ({path_type}): {model_path2}")
+    if supevised_train_comp:
+        if not os.path.isfile(model_path2):
+            raise ValueError(f"MCT export provided should be a file not a folder: {model_path2}")
+        if not model_path2.lower().endswith(".json"):
+            raise ValueError(f"MCT export expected in .json format, Got: {model_path2}")
+    if cui_filter is not None:
+        if isinstance(cui_filter, str):
+            if not os.path.exists(cui_filter):
+                raise ValueError(f"File passed as CUI filter does not exist: {cui_filter}")
+
+
 def get_diffs_for(model_pack_path_1: str,
                   model_pack_path_2: str,
                   documents_file: str,
@@ -106,6 +126,7 @@ def get_diffs_for(model_pack_path_1: str,
                   supervised_train_comparison_model: bool = False,
                   keep_raw: bool = True,
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
+    _validate_input(model_pack_path_1, model_pack_path_2, documents_file, cui_filter, supervised_train_comparison_model)
     documents = load_documents(documents_file)
     if show_progress:
         print("Loading [1]", model_pack_path_1)
