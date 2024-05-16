@@ -52,7 +52,7 @@ def _is_medcat_model_folder(model_folder: str):
 def is_medcat_model(model_path: str) -> bool:
     if os.path.isdir(model_path):
         return _is_medcat_model_folder(model_path)
-    model_folder = model_path.removesuffix(".zip")
+    model_folder = model_path[:-len(".zip")]
     if os.path.exists(model_folder):
         # NOTE: if the model folder doesn't exist, it will
         #       be extracted upon loading the model
