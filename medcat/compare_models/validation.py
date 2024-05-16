@@ -1,5 +1,15 @@
 from typing import Optional, Union, Set
 import os
+import glob
+
+
+def _is_mct_export(file_path: str) -> bool:
+    if "*" in file_path:
+        nr_of_matching_files = len(list(glob.iglob(file_path)))
+        print("GLOB w", nr_of_matching_files,  nr_of_matching_files > 0)
+        return nr_of_matching_files > 0
+    print("MCT EXPORT (no-glob?", os.path.exists(file_path), file_path.endswith(".json"))
+    return os.path.exists(file_path) and file_path.endswith(".json")
 
 
 def validate_input(model_path1: str, model_path2: str, documents_file: str,
@@ -10,10 +20,12 @@ def validate_input(model_path1: str, model_path2: str, documents_file: str,
     if not is_medcat_model(model_path1):
         raise ValueError(f"Not a medcat model: {model_path1}")
     if not os.path.exists(model_path2):
-        path_type = "2nd model" if not supevised_train_comp else "MCT export"
-        raise ValueError(f"No file found at specified path ({path_type}): {model_path2}")
+        if supevised_train_comp and not _is_mct_export(model_path2):
+            raise ValueError(f"No matching MCT export found for: {model_path2}")
+        elif not supevised_train_comp:
+            raise ValueError(f"No file found at specified path (2nd model): {model_path2}")
     if supevised_train_comp:
-        if not os.path.isfile(model_path2):
+        if not os.path.isfile(model_path2) and not _is_mct_export(model_path2):
             raise ValueError(f"MCT export provided should be a file not a folder: {model_path2}")
         if not model_path2.lower().endswith(".json"):
             raise ValueError(f"MCT export expected in .json format, Got: {model_path2}")
