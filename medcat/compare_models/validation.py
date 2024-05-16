@@ -23,6 +23,10 @@ def validate_input(model_path1: str, model_path2: str, documents_file: str,
         if isinstance(cui_filter, str):
             if not os.path.exists(cui_filter):
                 raise ValueError(f"File passed as CUI filter does not exist: {cui_filter}")
+    if not os.path.exists(documents_file):
+        raise ValueError(f"No documents file found: {documents_file}")
+    if not documents_file.lower().endswith(".csv"):
+        raise ValueError(f"Expected a .csv file for documnets, got: {documents_file}")
 
 
 def _is_medcat_model_folder(model_folder: str):
