@@ -82,14 +82,14 @@ def relevant_text_gen(generator, doc_id = '_id', text_col='body_analysed'):
 
 batch_char_size = 500000  # Batch size (BS) in number of characters
 
-cat.multiprocessing(relevant_text_gen(search_gen),
-                    batch_size_chars=batch_char_size,
-                    only_cui=False,
-                    nproc=8, # Number of processors
-                    out_split_size_chars=20*batch_char_size,
-                    save_dir_path=ann_folder_path,
-                    min_free_memory=0.1,
-                    )
+cat.multiprocessing_batch_char_size(relevant_text_gen(search_gen),
+                                    batch_size_chars=batch_char_size,
+                                    only_cui=False,
+                                    nproc=8, # Number of processors
+                                    out_split_size_chars=20*batch_char_size,
+                                    save_dir_path=ann_folder_path,
+                                    min_free_memory=0.1,
+                                    )
 
 medcat_logger.warning(f'Annotation process complete!')
 
