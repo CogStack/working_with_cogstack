@@ -35,15 +35,18 @@ class NBComparer:
     def show_all(self):
         parse_and_show(self.cdb_comp, self.tally1, self.tally2, self.ann_diffs)
 
-    def show_per_document(self, limit: int = -1, print_delimiter: bool = True):
-        if limit >= 0:
-            keys = list(self.ann_diffs.per_doc_results.keys())[0:limit]
-        else:
-            keys = self.ann_diffs.per_doc_results.keys()
-        for key in keys:
-            if print_delimiter:
-                print('='*20,f'\n{key}', f'\n{"="*20}')
-            show_dict_deep(self.ann_diffs.per_doc_results[key].nr_of_comparisons)
+    def show_per_document(self, limit: int = -1, print_delimiter: bool = True,
+                          ignore_empty: bool = True):
+        cnt = 0
+        for key in self.ann_diffs.per_doc_results.keys():
+            comp_dict = self.ann_diffs.per_doc_results[key].nr_of_comparisons
+            if not ignore_empty or comp_dict: # ignore empty ones
+                if print_delimiter:
+                    print('='*20,f'\n{key}', f'\n{"="*20}')
+                show_dict_deep(self.ann_diffs.per_doc_results[key].nr_of_comparisons)
+                cnt += 1
+            if limit > -1 and cnt == limit:
+                break
 
     def diffs_to_csv(self, file_path: str) -> None:
         self.ann_diffs.to_csv(file_path)
