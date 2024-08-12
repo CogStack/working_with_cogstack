@@ -2,7 +2,7 @@ from ipyfilechooser import FileChooser
 from ipywidgets import widgets
 from IPython.display import display
 import os
-from typing import List
+from typing import List, Optional
 
 
 from compare import get_diffs_for
@@ -16,11 +16,12 @@ _def_path = _def_path if os.path.exists(_def_path) else '.'
 class NBComparer:
 
     def __init__(self, model_path_1: str, model_path_2: str,
-                 documents_file: str, is_mct_export_compare: bool,
+                 documents_file: str, doc_limit: int, is_mct_export_compare: bool,
                  cui_filter: str, filter_children: bool) -> None:
         self.model_path_1 = model_path_1
         self.model_path_2 = model_path_2
         self.documents_file = documents_file
+        self.doc_limit = doc_limit
         self.is_mct_export_compare = is_mct_export_compare
         self.cui_filter = cui_filter
         self.filter_children = filter_children
@@ -30,7 +31,7 @@ class NBComparer:
         (self.cdb_comp, self.tally1, self.tally2, self.ann_diffs) = get_diffs_for(
             self.model_path_1, self.model_path_2, self.documents_file,
             cui_filter=self.cui_filter, include_children_in_filter=self.filter_children,
-            supervised_train_comparison_model=self.is_mct_export_compare)
+            supervised_train_comparison_model=self.is_mct_export_compare, doc_limit=self.doc_limit)
 
     def show_all(self):
         parse_and_show(self.cdb_comp, self.tally1, self.tally2, self.ann_diffs)
@@ -71,6 +72,7 @@ class NBInputter:
     mc1_title = "Choose model 1"
     mc2_title = "Choose model 2 (or an MCT export)"
     docs_title = "Choose the documents file (.csv with 'text' field)"
+    docs_limit_title = "Limit the number of documents to run (-1 to disable)"
     mct_export_title = "Is the 2nd path an MCT export (instead of a model)?"
     cui_filter_title_overall = "CUI Filter"
     cui_filter_title_file_chooser = "Choose file with comma-separated CUIs"
@@ -81,6 +83,7 @@ class NBInputter:
         self.model1_chooser = FileChooser(_def_path)
         self.model2_chooser = FileChooser(_def_path)
         self.documents_chooser = FileChooser(".")
+        self.doc_limit = widgets.IntText(-1)
         self.ckbox = widgets.Checkbox(description="MCT export compare")
 
         self.cui_filter_chooser = FileChooser(".", description="The CUI filter file")
@@ -93,6 +96,7 @@ class NBInputter:
             widgets.VBox([widgets.Label(self.mc1_title), self.model1_chooser]),
             widgets.VBox([widgets.Label(self.mc2_title), self.model2_chooser]),
             widgets.VBox([widgets.Label(self.docs_title), self.documents_chooser]),
+            widgets.VBox([widgets.Label(self.docs_limit_title), self.doc_limit]),
             widgets.VBox([widgets.Label(self.mct_export_title), self.ckbox])
         ])
 
@@ -115,6 +119,7 @@ class NBInputter:
         model_path_1 = self.model1_chooser.selected
         model_path_2 = self.model2_chooser.selected
         documents_file = self.documents_chooser.selected
+        doc_limit = self.doc_limit.value
         is_mct_export_compare = self.ckbox.value
         if not is_mct_export_compare:
             print(f"For models, selected:\nModel1: {model_path_1}\nModel2: {model_path_2}"
@@ -132,7 +137,7 @@ class NBInputter:
         if self.cui_children.value and self.cui_children.value > 0:
             filter_children = self.cui_children.value
         print(f"For CUI filter, selected:\nFilter: {cui_filter}\nChildren: {filter_children}")
-        return (model_path_1, model_path_2, documents_file, is_mct_export_compare, cui_filter, filter_children)
+        return (model_path_1, model_path_2, documents_file, doc_limit, is_mct_export_compare, cui_filter, filter_children)
 
     def get_comparison(self) -> NBComparer:
         return NBComparer(*self._get_params())
