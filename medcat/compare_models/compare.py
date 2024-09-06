@@ -7,7 +7,7 @@ from medcat.cat import CAT
 import pandas as pd
 import tqdm
 import tempfile
-import os
+from itertools import islice
 
 from compare_cdb import compare as compare_cdbs, CDBCompareResults
 from compare_annotations import ResultsTally, PerAnnotationDifferences
@@ -17,18 +17,22 @@ from validation import validate_input
 
 
 
-def load_documents(file_name: str) -> Iterator[Tuple[str, str]]:
+def load_documents(file_name: str, doc_limit: int = -1) -> Iterator[Tuple[str, str]]:
     with open(file_name) as f:
         df = pd.read_csv(f, names=["id", "text"])
     if df.iloc[0].id == "id" and df.iloc[0].text == "text":
         # removes the header
         # but also messes up the index a little
         df = df.iloc[1:, :]
-    yield from df.itertuples(index=False)
+    if doc_limit == -1:
+        yield from df.itertuples(index=False)
+    else:
+        yield from islice(df.itertuples(index=False), doc_limit)
 
 
 def do_counting(cat1: CAT, cat2: CAT,
-                ann_diffs: PerAnnotationDifferences) -> ResultsTally:
+                ann_diffs: PerAnnotationDifferences,
+                doc_limit: int = -1) -> ResultsTally:
     def cui2name(cat, cui):
         if cui in cat.cdb.cui2preferred_name:
             return cat.cdb.cui2preferred_name[cui]
@@ -39,7 +43,8 @@ def do_counting(cat1: CAT, cat2: CAT,
                         cui2name=partial(cui2name, cat1))
     res2 = ResultsTally(pt2ch=_get_pt2ch(cat2), cat_data=cat2.cdb.make_stats(),
                         cui2name=partial(cui2name, cat2))
-    for per_doc in tqdm.tqdm(ann_diffs.per_doc_results.values()):
+    total = doc_limit if doc_limit != -1 else None
+    for per_doc in tqdm.tqdm(ann_diffs.per_doc_results.values(), total=total):
         res1.count(per_doc.raw1)
         res2.count(per_doc.raw2)
     return res1, res2
@@ -52,6 +57,7 @@ def _get_pt2ch(cat: CAT) -> Optional[Dict]:
 def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Iterator[Tuple[str, str]],
                              show_progress: bool = True,
                              keep_raw: bool = True,
+                             doc_limit: int = -1
                              ) -> PerAnnotationDifferences:
     pt2ch1: Optional[Dict] = _get_pt2ch(cat1)
     pt2ch2: Optional[Dict] = _get_pt2ch(cat2)
@@ -63,7 +69,8 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Iterator[Tuple[str
                                    model2_cuis=set(cat2.cdb.cui2names),
                                    keep_raw=keep_raw,
                                    save_options=save_opts)
-    for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress):
+    total = doc_limit if doc_limit != -1 else None
+    for doc_id, doc in tqdm.tqdm(documents, disable=not show_progress, total=total):
         pad.look_at_doc(cat1.get_entities(doc), cat2.get_entities(doc), doc_id, doc)
     pad.finalise()
     return pad
@@ -107,9 +114,10 @@ def get_diffs_for(model_pack_path_1: str,
                   include_children_in_filter: Optional[int] = None,
                   supervised_train_comparison_model: bool = False,
                   keep_raw: bool = True,
+                  doc_limit: int = -1,
                   ) -> Tuple[CDBCompareResults, ResultsTally, ResultsTally, PerAnnotationDifferences]:
     validate_input(model_pack_path_1, model_pack_path_2, documents_file, cui_filter, supervised_train_comparison_model)
-    documents = load_documents(documents_file)
+    documents = load_documents(documents_file, doc_limit=doc_limit)
     if show_progress:
         print("Loading [1]", model_pack_path_1)
     cat1 = CAT.load_model_pack(model_pack_path_1)
@@ -145,10 +153,11 @@ def get_diffs_for(model_pack_path_1: str,
                       len(cui_filter), "CUIs")
         cat1.config.linking.filters.cuis = cui_filter
         cat2.config.linking.filters.cuis = cui_filter
-    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents, keep_raw=keep_raw)
+    ann_diffs = get_per_annotation_diffs(cat1, cat2, documents, keep_raw=keep_raw,
+                                         doc_limit=doc_limit)
     if show_progress:
         print("Counting [1&2]")
-    res1, res2 = do_counting(cat1, cat2, ann_diffs)
+    res1, res2 = do_counting(cat1, cat2, ann_diffs, doc_limit=doc_limit)
     if show_progress:
         print("CDB compare")
     cdb_diff = compare_cdbs(cat1.cdb, cat2.cdb)
