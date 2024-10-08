@@ -14,8 +14,10 @@ password = None
 # If you do not have a UMLS account, you may apply for a license on the UMLS Terminology Services (UTS) website.
 # https://documentation.uts.nlm.nih.gov/rest/authentication.html
 
-# TODO: add option for UMLS api key auth
+# UMLS api key auth
+umls_apikey = None
 
-
-# SNOMED authentication from international and TRUD
-# TODO add arg for api key auth
+# SNOMED authentication from NHS TRUD. International releases will require different API access creds.
+# api key auth from NHS TRUD
+# For more information please see: https://isd.digital.nhs.uk/trud/users/guest/filters/0/api
+snomed_apikey = None

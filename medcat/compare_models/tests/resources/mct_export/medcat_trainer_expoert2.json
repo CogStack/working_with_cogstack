@@ -1,0 +1,21 @@
+{"projects":
+    [
+        {
+            "name": "SAMPLE FAKE PROJECT",
+            "id": -2,
+            "cuis": "",
+            "tuis": "",
+            "documents": [
+                {
+                    "id": -2,
+                    "name": "FAKE-TEXT",
+                    "text": "FAKE TEXT WITH fake concepts, i.e Virus Z, and Virus.",
+                    "annotations": [
+                        {"id": -3, "user": "fake", "cui": "C0000139", "value": "gastroesophageal reflux", "start": 34, "end": 41, "validated": true, "correct": true, "deleted": false, "alternative": false, "killed": false, "last_modified": "2024-04-16 11:54:00.00000+00:00", "manually_created": false, "acc": 1.0, "meta_anns": []},
+                        {"id": -4, "user": "fake", "cui": "C0000039", "value": "hypertension", "start": 47, "end": 52, "validated": true, "correct": true, "deleted": false, "alternative": false, "killed": false, "last_modified": "2020-04-01 22:06:30.394941+00:00", "manually_created": false, "acc": 1.0, "meta_anns": []}
+                        ]
+                }
+            ]
+        }
+    ]
+}
