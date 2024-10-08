@@ -313,7 +313,7 @@ class MedcatTrainer_export(object):
 
         # We already have everything, just get the data
         category_value2id = g_config['category_value2id']
-        data, _ = encode_category_values(data, existing_category_value2id=category_value2id)
+        data, data_undersampled, _ = encode_category_values(data, existing_category_value2id=category_value2id)
         print(_)
         print(len(data))
         # Run evaluation
