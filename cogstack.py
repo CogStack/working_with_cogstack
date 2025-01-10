@@ -23,18 +23,20 @@ class CogStack(object):
         api (bool, optional): A boolean value indicating whether to use API keys or basic authentication to connect to Elasticsearch. Defaults to False (i.e., use basic authentication).
     """
     def __init__(self, hosts: List, username: Optional[str] = None, password: Optional[str] = None,
-                 api: bool = False):
+                 api: bool = False, timeout: Optional[int]=60):
 
         if api:
             api_username, api_password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key=(api_username, api_password),
-                                                       verify_certs=False)
+                                                       verify_certs=False,
+                                                       timeout=timeout)
         else:
             username, password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        basic_auth=(username, password),
-                                                       verify_certs=False)
+                                                       verify_certs=False,
+                                                       timeout=timeout)
 
 
     def _check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
