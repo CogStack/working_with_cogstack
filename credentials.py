@@ -8,6 +8,7 @@ hosts: List[str] = []  # This is a list of your CogStack ElasticSearch instances
 username = None
 password = None
 
+api_key = None # Encoded api key issued by your cogstack administrator.
 
 # NLM authentication
 # The UMLS REST API requires a UMLS account for the authentication described below. 
