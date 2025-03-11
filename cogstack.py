@@ -20,17 +20,27 @@ class CogStack(object):
         hosts (List[str]): A list of Elasticsearch host URLs.
         username (str, optional): The username to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a username.
         password (str, optional): The password to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a password.
-        api (bool, optional): A boolean value indicating whether to use API keys or basic authentication to connect to Elasticsearch. Defaults to False (i.e., use basic authentication).
+        api (bool, optional): A boolean value indicating whether to use API keys or basic authentication to connect to Elasticsearch. Defaults to False (i.e., use basic authentication). Elasticsearch 7.17.
+        api_key (str, optional): The API key to use when connecting to Elasticsearch.
+            When provided along with `api=True`, this takes precedence over username/password. Only available when using Elasticsearch 8.17.
     """
     def __init__(self, hosts: List, username: Optional[str] = None, password: Optional[str] = None,
-                 api: bool = False, timeout: Optional[int]=60):
+                 api: bool = False, timeout: Optional[int]=60, api_key: Optional[str] = None):
 
-        if api:
+        if api_key and api:
+            self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
+                                                       api_key=api_key,
+                                                       verify_certs=False,
+                                                       timeout=timeout)
+        
+        
+        elif api:
             api_username, api_password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key=(api_username, api_password),
                                                        verify_certs=False,
                                                        timeout=timeout)
+            
         else:
             username, password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
