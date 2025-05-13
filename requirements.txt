@@ -5,3 +5,4 @@ plotly~=5.19.0
 en_core_web_md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl
 ipyfilechooser
 jupyter_contrib_nbextensions
+-e ./compatibility_package
