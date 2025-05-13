@@ -10,12 +10,7 @@ import importlib
 import argparse
 
 # First, ensure medcat compatibility is set up
-import medcat
-print("medcat?", medcat, ":", dir(medcat))
-import medcat.cat
-import medcat.vocab
-import medcat.cdb
-print("Loaded medcat")
+import medcat  # noqa
 
 
 # Now run the tests
