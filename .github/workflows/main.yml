@@ -34,8 +34,8 @@ jobs:
           python -m mypy `git ls-tree --full-tree --name-only -r HEAD | grep ".py$" | grep -v "tests/"` --explicit-package-bases --follow-imports=normal
       - name: Test
         run: |
-          python tests/run_tests.py
-          python tests/run_tests.py -s medcat/compare_models
+          python tests/custom_test_runner.py
+          python tests/custom_test_runner.py -s medcat/compare_models
 # TODO - in the future, we might want to add automated tests for notebooks as well
 # though it's not really possible right now since the notebooks are designed
 # in a way that assumes interaction (i.e specifying model pack names)
