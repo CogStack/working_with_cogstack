@@ -26,4 +26,4 @@ for module_name in list(sys.modules.keys()):
         submodule_name = 'medcat'
     else:
         continue
-    sys.modules[submodule_name] = SubmoduleProxy(module_name)
+    sys.modules[submodule_name] = SubmoduleProxy(module_name)  # type: ignore
