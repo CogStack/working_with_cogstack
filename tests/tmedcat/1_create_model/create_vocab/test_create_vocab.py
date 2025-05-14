@@ -3,6 +3,7 @@ import sys
 import shutil
 
 import medcat.vocab
+from medcat.storage.serialisers import deserialise
 
 _FILE_DIR = os.path.dirname(__file__)
 
@@ -61,5 +62,5 @@ class CreateVocabTest(unittest.TestCase):
         vocab_path = os.path.join(create_vocab.vocab_dir, "vocab.dat")
         self.assertEqual(os.path.abspath(vocab_path), VOCAB_OUTPUT_PATH)
         self.assertTrue(os.path.exists(vocab_path))
-        vocab = medcat.vocab.Vocab.load(vocab_path)
+        vocab: medcat.vocab.Vocab = deserialise(vocab_path)
         self.assertIsInstance(vocab, medcat.vocab.Vocab)
