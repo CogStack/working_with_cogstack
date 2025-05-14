@@ -21,7 +21,7 @@ sys.path.append(MEDCAT_CREATE_MODELPACK_FOLDER)
 
 import create_modelpack
 
-RESOURCES_FOLDER = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources")
+RESOURCES_FOLDER = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources")
 DEFAULT_CDB_PATH = os.path.join(RESOURCES_FOLDER, "cdb.dat")
 DEFAULT_VOCAB_PATH = os.path.join(RESOURCES_FOLDER, "vocab.dat")
 
