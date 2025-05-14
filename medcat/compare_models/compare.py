@@ -64,8 +64,8 @@ def get_per_annotation_diffs(cat1: CAT, cat2: CAT, documents: Iterator[Tuple[str
     save_opts = SaveOptions(use_db=True, db_file_name=temp_file.name,
                             clean_callback=temp_file.close)
     pad = PerAnnotationDifferences(pt2ch1=pt2ch1, pt2ch2=pt2ch2,
-                                   model1_cuis=set(cat1.cdb.cui2names),
-                                   model2_cuis=set(cat2.cdb.cui2names),
+                                   model1_cuis=set(cat1.cdb.cui2info),
+                                   model2_cuis=set(cat2.cdb.cui2info),
                                    keep_raw=keep_raw,
                                    save_options=save_opts)
     total = doc_limit if doc_limit != -1 else None
