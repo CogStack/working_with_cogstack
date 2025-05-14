@@ -1,6 +1,7 @@
-from typing import List, Tuple, Dict, Set, Optional, Union, Iterator
+from typing import Tuple, Dict, Set, Optional, Union, Iterator
 from functools import partial
 import glob
+import json
 
 from medcat.cat import CAT
 
@@ -34,11 +35,9 @@ def do_counting(cat1: CAT, cat2: CAT,
                 ann_diffs: PerAnnotationDifferences,
                 doc_limit: int = -1) -> ResultsTally:
     def cui2name(cat, cui):
-        if cui in cat.cdb.cui2preferred_name:
-            return cat.cdb.cui2preferred_name[cui]
-        all_names = cat.cdb.cui2names[cui]
-        # longest anme
-        return sorted(all_names, key=lambda name: len(name), reverse=True)[0]
+        ci = cat.cdb.cui2info[cui]
+        # longest name
+        return ci['preferred_name'] or sorted(ci['names'], key=lambda name: len(name), reverse=True)[0]
     res1 = ResultsTally(pt2ch=_get_pt2ch(cat1), cat_data=cat1.cdb.make_stats(),
                         cui2name=partial(cui2name, cat1))
     res2 = ResultsTally(pt2ch=_get_pt2ch(cat2), cat_data=cat2.cdb.make_stats(),
@@ -99,10 +98,14 @@ def load_and_train(model_pack_path: str, mct_export_path: str) -> CAT:
     # NOTE: Allowing mct_export_path to contain wildcat ("*").
     #       And in such a case, iterating over all matching files
     if "*" not in mct_export_path:
-        cat.train_supervised_from_json(mct_export_path)
+        with open(mct_export_path) as f:
+            mct_export = json.load(f)
+        cat.trainer.train_supervised_raw(mct_export)
     else:
         for file in glob.glob(mct_export_path):
-            cat.train_supervised_from_json(file)
+            with open(file) as f:
+                mct_export = json.load(f)
+            cat.trainer.train_supervised_raw(mct_export)
     return cat
 
 
