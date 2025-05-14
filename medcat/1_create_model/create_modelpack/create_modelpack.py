@@ -44,14 +44,14 @@ def load_cdb_and_save_modelpack(cdb_path: str,
 
     # Set cdb configuration
     # technically we already created this during the cdb creation
-    cdb.config.ner['min_name_len'] = 2
-    cdb.config.ner['upper_case_limit_len'] = 3
-    cdb.config.general['spell_check'] = True
-    cdb.config.linking['train_count_threshold'] = 10
-    cdb.config.linking['similarity_threshold'] = 0.3
-    cdb.config.linking['train'] = True
-    cdb.config.linking['disamb_length_limit'] = 4
-    cdb.config.general['full_unlink'] = True
+    cdb.config.components.ner.min_name_len = 2
+    cdb.config.components.ner.upper_case_limit_len = 3
+    cdb.config.general.spell_check = True
+    cdb.config.components.linking.train_count_threshold = 10
+    cdb.config.components.linking.similarity_threshold = 0.3
+    cdb.config.components.linking.train = True
+    cdb.config.components.linking.disamb_length_limit = 4
+    cdb.config.general.full_unlink = True
 
     # Load vocab
     vocab: Vocab = deserialise(vocab_path)
@@ -60,7 +60,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
     cat = CAT(cdb=cdb, config=cdb.config, vocab=vocab)
 
     # Create and save model pack
-    return cat.create_model_pack(save_dir_path=modelpack_path, model_pack_name=modelpack_name)
+    return cat.save_model_pack(modelpack_path, pack_name=modelpack_name)
 
 
 def load_cdb_and_save_modelpack_in_def_location(cdb_name: str,
