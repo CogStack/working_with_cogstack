@@ -78,10 +78,10 @@ class TrainAndCompareTests(unittest.TestCase):
     # this tests that the training is called
     @classmethod
     @unittest.mock.patch("medcat.trainer.Trainer.train_supervised_raw")
-    def _get_diffs(cls, mct_export_path: str, method):
+    def _get_diffs(cls, mct_export_path: str, method: unittest.mock.MagicMock):
         diffs = get_diffs_for(cls.cat_path, mct_export_path, cls.docs_file,
                               supervised_train_comparison_model=True)
-        cls.assertTrue(cls, method.called, "Expected method to be called")
+        method.assert_called()
         return diffs
 
 
