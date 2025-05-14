@@ -39,9 +39,10 @@ class CreateModelPackTests(unittest.TestCase):
         cls.tempfolder.cleanup()
 
     def test_a(self):
-        model_pack_name = create_modelpack.load_cdb_and_save_modelpack(
+        model_pack_name_full = create_modelpack.load_cdb_and_save_modelpack(
             DEFAULT_CDB_PATH, self.model_pack_name,
             self.tempfolder.name, DEFAULT_VOCAB_PATH)
+        model_pack_name = os.path.basename(model_pack_name_full)
         self.assertTrue(model_pack_name.startswith(self.model_pack_name))
         model_pack_path = os.path.join(self.tempfolder.name, model_pack_name)
         self.assertTrue(os.path.exists(model_pack_path))
