@@ -38,8 +38,9 @@ class ResultsTallyTests(unittest.TestCase):
         return self.cui2name[cui]
 
     def setUp(self) -> None:
-        self.res = compare_annotations.ResultsTally(cat_data={"stats": "don't matter"},
-                                               cui2name=self._cui2name)
+        self.res = compare_annotations.ResultsTally(
+            pt2ch=None, cat_data={"stats": "don't matter"},
+            cui2name=self._cui2name)
         for entities in self.entities:
             self.res.count(entities['entities'])
 
