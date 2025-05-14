@@ -1,6 +1,9 @@
 import os
 import sys
+import shutil
+
 import medcat.cdb
+from medcat.storage.serialisers import deserialise
 
 _FILE_DIR = os.path.dirname(__file__)
 
@@ -35,12 +38,12 @@ class CreateCDBTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.output_cdb is not None and os.path.exists(self.output_cdb):
-            os.remove(self.output_cdb)
+            shutil.rmtree(self.output_cdb)
 
     def assertHasCDB(self, path: str):
         self.assertTrue(os.path.exists(path))
         self.assertTrue(path.endswith(".dat"))
-        cdb = medcat.cdb.CDB.load(path)
+        cdb: CDB = deserialise(path)
         self.assertIsInstance(cdb, medcat.cdb.CDB)
 
     def test_snomed_cdb_creation(self):
