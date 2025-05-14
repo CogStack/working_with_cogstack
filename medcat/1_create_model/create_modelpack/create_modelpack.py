@@ -3,6 +3,7 @@ import os
 from medcat.vocab import Vocab
 from medcat.cdb import CDB
 from medcat.cat import CAT
+from medcat.storage.serialisers import deserialise
 
 # relative to file path
 _FILE_DIR = os.path.dirname(__file__)
@@ -39,7 +40,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
         str: The model pack path.
     """
     # Load cdb
-    cdb = CDB.load(cdb_path)
+    cdb: CDB = deserialise(cdb_path)
 
     # Set cdb configuration
     # technically we already created this during the cdb creation
@@ -53,7 +54,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
     cdb.config.general['full_unlink'] = True
 
     # Load vocab
-    vocab = Vocab.load(vocab_path)
+    vocab: Vocab = deserialise(vocab_path)
 
     # Initialise the model
     cat = CAT(cdb=cdb, config=cdb.config, vocab=vocab)
