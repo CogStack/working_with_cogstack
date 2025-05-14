@@ -77,7 +77,7 @@ class TrainAndCompareTests(unittest.TestCase):
 
     # this tests that the training is called
     @classmethod
-    @unittest.mock.patch("medcat.cat.CAT.train_supervised_from_json")
+    @unittest.mock.patch("medcat.trainer.Trainer.train_supervised_raw")
     def _get_diffs(cls, mct_export_path: str, method):
         diffs = get_diffs_for(cls.cat_path, mct_export_path, cls.docs_file,
                               supervised_train_comparison_model=True)
