@@ -18,5 +18,6 @@ vocab_dir = os.path.join(BASE_PATH, "models", "vocab")
 # embeddings of 300 dimensions is standard
 
 vocab.add_words(os.path.join(vocab_dir, 'vocab_data.txt'), replace=True)
-serialise(AvailableSerialisers.dill, vocab,
-          os.path.join(vocab_dir, "vocab.dat"))
+vocab_folder = os.path.join(vocab_dir, "vocab.dat")
+os.makedirs(vocab_folder, exist_ok=True)
+serialise(AvailableSerialisers.dill, vocab, vocab_folder)
