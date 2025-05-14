@@ -17,6 +17,15 @@ class SubmoduleProxy:
         return getattr(importlib.import_module(self.target_module_name), name)
 
 
+manual_changes = {
+    "medcat.tokenizers.meta_cat_tokenizers": "medcat2.components.addons.meta_cat.mctokenizers.tokenizers",
+    "medcat.cdb_maker": "medcat2.model_creation.cdb_maker",
+    "medcat.utils.meta_cat": "medcat2.components.addons.meta_cat",
+    "medcat.meta_cat": "medcat2.components.addons.meta_cat.meta_cat",
+    "medcat.config_meta_cat": "medcat2.config.config_meta_cat",
+}
+
+
 # For each submodule in medcat2, create a proxy in sys.modules
 for module_name in list(sys.modules.keys()):
     if (module_name.startswith('medcat2.') and
@@ -27,3 +36,6 @@ for module_name in list(sys.modules.keys()):
     else:
         continue
     sys.modules[submodule_name] = SubmoduleProxy(module_name)  # type: ignore
+
+for module_name, replacement_module_name in manual_changes.items():
+    sys.modules[module_name] = SubmoduleProxy(replacement_module_name)  # type: ignore
