@@ -79,6 +79,12 @@ class TrainAndCompareTests(unittest.TestCase):
     @classmethod
     @unittest.mock.patch("medcat.trainer.Trainer.train_supervised_raw")
     def _get_diffs(cls, mct_export_path: str, method: unittest.mock.MagicMock):
+        orig_load_method = CAT.load_model_pack
+        def _wrapped_load_method(*args, **kwargs):
+            cat = orig_load_method(*args, **kwargs)
+            cat.trainer.train_supervised_raw = method
+            return cat
+        CAT.load_model_pack = _wrapped_load_method
         diffs = get_diffs_for(cls.cat_path, mct_export_path, cls.docs_file,
                               supervised_train_comparison_model=True)
         method.assert_called()
