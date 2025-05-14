@@ -25,7 +25,10 @@ csv_path = os.path.join(EXPECTED_CSV_PATH, csv_path)
 
 model_dir = os.path.join(BASE_PATH, "models", "cdb")
 output_cdb = os.path.join(model_dir, f"{release}_SNOMED_cdb.dat")
-os.mkdir(output_cdb)
+os.makedirs(output_cdb, exist_ok=True)
+# NOTE: by default, new models creaeted at the same location will not be saved
+#       so here we allow overwrtiing
+allow_overwrite = True
 csv = pd.read_csv(csv_path)
 
 # Remove null values
@@ -69,5 +72,5 @@ cdb.addl_info['type_id2name'] = pd.Series(csv.description_type_ids.values, index
 cdb.config.components.linking.filters.cuis = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
 
 # save model
-serialise(AvailableSerialisers.dill, cdb, output_cdb)
+serialise(AvailableSerialisers.dill, cdb, output_cdb, overwrite=allow_overwrite)
 print(f"CDB Model saved successfully as: {output_cdb}")

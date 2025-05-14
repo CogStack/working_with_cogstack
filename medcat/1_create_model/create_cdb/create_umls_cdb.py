@@ -29,7 +29,10 @@ if not os.path.exists('models'):
 
 model_dir = os.path.join(BASE_PATH, "models", "cdb")
 output_cdb = os.path.join(model_dir, f"{release}_UMLS_cdb.dat")
-os.mkdir(output_cdb)
+os.makedirs(output_cdb, exist_ok=True)
+# NOTE: by default, new models creaeted at the same location will not be saved
+#       so here we allow overwrtiing
+allow_overwrite = True
 csv = pd.read_csv(csv_path)
 
 # Remove null values
@@ -57,5 +60,5 @@ cdb = maker.prepare_csvs(csv_paths, full_build=True)
 cdb.config.components.linking.filters.cuis = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
 
 # save model
-serialise(AvailableSerialisers.dill, cdb, output_cdb)
+serialise(AvailableSerialisers.dill, cdb, output_cdb, overwrite=allow_overwrite)
 print(f"CDB Model saved successfully as: {output_cdb}")
