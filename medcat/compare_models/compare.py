@@ -38,9 +38,9 @@ def do_counting(cat1: CAT, cat2: CAT,
         ci = cat.cdb.cui2info[cui]
         # longest name
         return ci['preferred_name'] or sorted(ci['names'], key=lambda name: len(name), reverse=True)[0]
-    res1 = ResultsTally(pt2ch=_get_pt2ch(cat1), cat_data=cat1.cdb.make_stats(),
+    res1 = ResultsTally(pt2ch=_get_pt2ch(cat1), cat_data=cat1.cdb.get_basic_info(),
                         cui2name=partial(cui2name, cat1))
-    res2 = ResultsTally(pt2ch=_get_pt2ch(cat2), cat_data=cat2.cdb.make_stats(),
+    res2 = ResultsTally(pt2ch=_get_pt2ch(cat2), cat_data=cat2.cdb.get_basic_info(),
                         cui2name=partial(cui2name, cat2))
     total = doc_limit if doc_limit != -1 else None
     for per_doc in tqdm.tqdm(ann_diffs.per_doc_results.values(), total=total):
