@@ -1,4 +1,5 @@
 from medcat.vocab import Vocab
+from medcat.storage.serialisers import serialise, AvailableSerialisers
 import os
 
 vocab = Vocab()
@@ -17,5 +18,5 @@ vocab_dir = os.path.join(BASE_PATH, "models", "vocab")
 # embeddings of 300 dimensions is standard
 
 vocab.add_words(os.path.join(vocab_dir, 'vocab_data.txt'), replace=True)
-vocab.make_unigram_table()
-vocab.save(os.path.join(vocab_dir, "vocab.dat"))
+serialise(AvailableSerialisers.dill, vocab,
+          os.path.join(vocab_dir, "vocab.dat"))
