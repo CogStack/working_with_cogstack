@@ -18,8 +18,8 @@ import unittest
 from unittest.mock import patch
 
 # SNOMED pre-cdb csv
-PRE_CDB_CSV_PATH_SNOMED = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources", "example_cdb_input_snomed.csv")
-PRE_CDB_CSV_PATH_UMLS = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources", "example_cdb_input_umls.csv")
+PRE_CDB_CSV_PATH_SNOMED = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources", "example_cdb_input_snomed.csv")
+PRE_CDB_CSV_PATH_UMLS = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources", "example_cdb_input_umls.csv")
 
 
 def get_mock_input(output: str):
