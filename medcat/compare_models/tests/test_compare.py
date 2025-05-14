@@ -81,7 +81,7 @@ class TrainAndCompareTests(unittest.TestCase):
     def _get_diffs(cls, mct_export_path: str, method):
         diffs = get_diffs_for(cls.cat_path, mct_export_path, cls.docs_file,
                               supervised_train_comparison_model=True)
-        cls.assertTrue(cls, method.called)
+        cls.assertTrue(cls, method.called, "Expected method to be called")
         return diffs
 
 
