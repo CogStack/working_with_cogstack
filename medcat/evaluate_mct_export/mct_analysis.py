@@ -2,6 +2,7 @@ import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
 from datetime import date
+from typing import cast
 
 import os
 import json
@@ -111,7 +112,7 @@ class MedcatTrainer_export(object):
         """
         annotation_df = pd.DataFrame(self.annotations)
         if self.cat:
-            annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(lambda cui: self.cat.cdb.get_name(cui)))
+            annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(lambda cui: cast(CAT, self.cat).cdb.get_name(cui)))
         exceptions: List[ValueError] = []
         # try the default format as well as the format specified above
         for format in [None, DATETIME_FORMAT]:
@@ -432,7 +433,7 @@ class MedcatTrainer_export(object):
         meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
         meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
         meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
-        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(lambda cui: self.cat.cdb.get_name(cui)))
+        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(lambda cui: cast(CAT, self.cat).cdb.get_name(cui)))
         return meta_anns_df
 
     def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):
