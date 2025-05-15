@@ -85,12 +85,12 @@ batch_char_size = 500000  # Batch size (BS) in number of characters
 # NOTE: no multiprocessing in v2 right now
 for text in relevant_text_gen(search_gen):
     cat.get_entities(text,
-                     batch_size_chars=batch_char_size,
-                     only_cui=False,
-                     nproc=8, # Number of processors
-                     out_split_size_chars=20*batch_char_size,
-                     save_dir_path=ann_folder_path,
-                     min_free_memory=0.1,
+                    #  batch_size_chars=batch_char_size,
+                    #  only_cui=False,
+                    #  nproc=8, # Number of processors
+                    #  out_split_size_chars=20*batch_char_size,
+                    #  save_dir_path=ann_folder_path,
+                    #  min_free_memory=0.1,
                      )
 
 medcat_logger.warning(f'Annotation process complete!')
