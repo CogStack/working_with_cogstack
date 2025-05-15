@@ -57,9 +57,9 @@ cat = CAT.load_model_pack(model_pack_path)
 if snomed_filter_path:
     snomed_filter = set(json.load(open(snomed_filter_path)))
 else:
-    snomed_filter = set(cat.cdb.cui2preferred_name.keys())
+    snomed_filter = set(cat.cdb.cui2info.keys())
 
-cat.config.linking['filters']['cuis'] = snomed_filter
+cat.config.linking.filters.cuis = snomed_filter
 del snomed_filter
 
 # build query, change as appropriate
@@ -82,14 +82,16 @@ def relevant_text_gen(generator, doc_id = '_id', text_col='body_analysed'):
 
 batch_char_size = 500000  # Batch size (BS) in number of characters
 
-cat.multiprocessing_batch_char_size(relevant_text_gen(search_gen),
-                                    batch_size_chars=batch_char_size,
-                                    only_cui=False,
-                                    nproc=8, # Number of processors
-                                    out_split_size_chars=20*batch_char_size,
-                                    save_dir_path=ann_folder_path,
-                                    min_free_memory=0.1,
-                                    )
+# NOTE: no multiprocessing in v2 right now
+for text in relevant_text_gen(search_gen):
+    cat.get_entities(text,
+                     batch_size_chars=batch_char_size,
+                     only_cui=False,
+                     nproc=8, # Number of processors
+                     out_split_size_chars=20*batch_char_size,
+                     save_dir_path=ann_folder_path,
+                     min_free_memory=0.1,
+                     )
 
 medcat_logger.warning(f'Annotation process complete!')
 
