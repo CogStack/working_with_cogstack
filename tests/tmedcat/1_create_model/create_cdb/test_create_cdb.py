@@ -1,6 +1,9 @@
 import os
 import sys
+import shutil
+
 import medcat.cdb
+from medcat.storage.serialisers import deserialise
 
 _FILE_DIR = os.path.dirname(__file__)
 
@@ -18,8 +21,8 @@ import unittest
 from unittest.mock import patch
 
 # SNOMED pre-cdb csv
-PRE_CDB_CSV_PATH_SNOMED = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources", "example_cdb_input_snomed.csv")
-PRE_CDB_CSV_PATH_UMLS = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources", "example_cdb_input_umls.csv")
+PRE_CDB_CSV_PATH_SNOMED = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources", "example_cdb_input_snomed.csv")
+PRE_CDB_CSV_PATH_UMLS = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources", "example_cdb_input_umls.csv")
 
 
 def get_mock_input(output: str):
@@ -35,12 +38,12 @@ class CreateCDBTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.output_cdb is not None and os.path.exists(self.output_cdb):
-            os.remove(self.output_cdb)
+            shutil.rmtree(self.output_cdb)
 
     def assertHasCDB(self, path: str):
         self.assertTrue(os.path.exists(path))
         self.assertTrue(path.endswith(".dat"))
-        cdb = medcat.cdb.CDB.load(path)
+        cdb: CDB = deserialise(path)
         self.assertIsInstance(cdb, medcat.cdb.CDB)
 
     def test_snomed_cdb_creation(self):

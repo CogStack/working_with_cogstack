@@ -14,7 +14,7 @@ class ResultsTally(BaseModel):
     pt2ch: Optional[Dict[str, Set[str]]]
     cat_data: dict
     cui2name: Callable[[str], str]
-    total_count = 0
+    total_count: int = 0
     per_cui_count: Dict[str, int] = {}
     per_cui_acc: Dict[str, float] = {}
     per_cui_forms: Dict[str, Set[str]] = {}
