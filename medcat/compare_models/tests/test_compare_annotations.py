@@ -39,7 +39,7 @@ class ResultsTallyTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.res = compare_annotations.ResultsTally(cat_data={"stats": "don't matter"},
-                                               cui2name=self._cui2name)
+                                               cui2name=self._cui2name, pt2ch=None)
         for entities in self.entities:
             self.res.count(entities['entities'])
 
