@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 from typing import List, Dict, Iterator, Tuple, Optional, Union
-from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
+from medcat.components.addons.meta_cat.mctokenizers.tokenizers import TokenizerWrapperBase
 
-from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
+from medcat.components.addons.meta_cat.ml_utils import create_batch_piped_data
 
 from medcat.components.addons.meta_cat.meta_cat import MetaCATAddon, MetaCAT
 from medcat.stats.stats import get_stats
