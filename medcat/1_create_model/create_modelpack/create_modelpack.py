@@ -59,7 +59,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
     cdb.config.general.full_unlink = True
 
     # Load vocab
-    vocab: Vocab = deserialise(vocab_path)
+    vocab: Vocab
     try:
         vocab = deserialise(vocab_path)
     except NotADirectoryError:
