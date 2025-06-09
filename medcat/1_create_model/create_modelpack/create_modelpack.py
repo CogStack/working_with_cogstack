@@ -64,7 +64,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
         vocab = deserialise(vocab_path)
     except NotADirectoryError:
         from medcat.utils.legacy.convert_vocab import get_vocab_from_old
-        vocab = get_vocab_from_old(cdb_path)
+        vocab = get_vocab_from_old(vocab_path)
 
     # Initialise the model
     cat = CAT(cdb=cdb, config=cdb.config, vocab=vocab)
