@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from medcat.config import Config
-from medcat.cdb_maker import CDBMaker
+from medcat.model_creation.cdb_maker import CDBMaker
 from medcat.storage.serialisers import serialise, AvailableSerialisers
 
 pd.options.mode.chained_assignment = None  # type: ignore
