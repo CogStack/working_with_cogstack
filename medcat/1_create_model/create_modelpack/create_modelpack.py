@@ -3,7 +3,6 @@ import os
 from medcat.vocab import Vocab
 from medcat.cdb import CDB
 from medcat.cat import CAT
-from medcat.storage.serialisers import deserialise
 
 # relative to file path
 _FILE_DIR = os.path.dirname(__file__)
@@ -42,7 +41,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
     # Load cdb
     cdb: CDB
     try:
-        cdb = deserialise(cdb_path)
+        cdb = CDB.load(cdb_path)
     except NotADirectoryError:
         from medcat.utils.legacy.convert_cdb import get_cdb_from_old
         cdb = get_cdb_from_old(cdb_path)
@@ -61,7 +60,7 @@ def load_cdb_and_save_modelpack(cdb_path: str,
     # Load vocab
     vocab: Vocab
     try:
-        vocab = deserialise(vocab_path)
+        vocab = Vocab.load(vocab_path)
     except NotADirectoryError:
         from medcat.utils.legacy.convert_vocab import get_vocab_from_old
         vocab = get_vocab_from_old(vocab_path)
