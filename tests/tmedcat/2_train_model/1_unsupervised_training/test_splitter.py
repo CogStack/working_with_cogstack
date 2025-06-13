@@ -19,7 +19,7 @@ sys.path.append(MEDCAT_EVAL_MCT_EXPORT_FOLDER)
 
 import splitter
 
-FILE_TO_SPLIT = os.path.join(_WWC_BASE_FOLDER, "tests", "medcat", "resources", "example_file_to_split.csv")
+FILE_TO_SPLIT = os.path.join(_WWC_BASE_FOLDER, "tests", "tmedcat", "resources", "example_file_to_split.csv")
 NR_OF_LINES_IN_FILE = 125
 NR_OF_COLUMNS_IN_FILE = 20
 

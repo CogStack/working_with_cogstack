@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 from medcat.config import Config
-from medcat.cdb_maker import CDBMaker
+from medcat.model_creation.cdb_maker import CDBMaker
+from medcat.storage.serialisers import serialise, AvailableSerialisers
 
 pd.options.mode.chained_assignment = None  # type: ignore
 
@@ -28,6 +29,10 @@ if not os.path.exists('models'):
 
 model_dir = os.path.join(BASE_PATH, "models", "cdb")
 output_cdb = os.path.join(model_dir, f"{release}_UMLS_cdb.dat")
+os.makedirs(output_cdb, exist_ok=True)
+# NOTE: by default, new models creaeted at the same location will not be saved
+#       so here we allow overwrtiing
+allow_overwrite = True
 csv = pd.read_csv(csv_path)
 
 # Remove null values
@@ -39,9 +44,9 @@ csv = csv.drop_duplicates(keep='first').reset_index(drop=True)
 
 # Setup config
 config = Config()
-config.general['spacy_model'] = 'en_core_web_md'
-config.cdb_maker['remove_parenthesis'] = 1
-config.general['cdb_source_name'] = f'UMLS_{release}'
+config.general.nlp.modelname = 'en_core_web_md'
+config.cdb_maker.remove_parenthesis = 1
+# config.general.cdb_source_name = f'UMLS_{release}'
 
 maker = CDBMaker(config)
 
@@ -52,8 +57,8 @@ csv_paths = [csv_path]
 cdb = maker.prepare_csvs(csv_paths, full_build=True) 
 
 # Add type_id pretty names to cdb
-cdb.config.linking['filters']['cuis'] = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
+cdb.config.components.linking.filters.cuis = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
 
 # save model
-cdb.save(output_cdb)
+serialise(AvailableSerialisers.dill, cdb, output_cdb, overwrite=allow_overwrite)
 print(f"CDB Model saved successfully as: {output_cdb}")

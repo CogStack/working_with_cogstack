@@ -1,6 +1,7 @@
 from typing import Dict, Set, Tuple
 
 from medcat.cdb import CDB
+from medcat.cdb.concepts import CUIInfo
 
 import tqdm
 from itertools import chain
@@ -96,7 +97,7 @@ class DictComparisonResults(BaseModel):
     values: DictCompareValues
 
     @classmethod
-    def get(cls, d1: dict, d2: dict, progress: bool = True) -> "DictComparisonResults":
+    def get(cls, d1: dict[str, CUIInfo], d2: dict[str, CUIInfo], progress: bool = True) -> "DictComparisonResults":
         return cls(keys=DictCompareKeys.get(d1, d2),
                    values=DictCompareValues.get(d1, d2, progress=progress))
 
@@ -119,6 +120,6 @@ def compare(cdb1: CDB,
     Returns:
         CDBCompareResults: _description_
     """
-    reg = DictComparisonResults.get(cdb1.cui2names, cdb2.cui2names, progress=show_progress)
-    snames = DictComparisonResults.get(cdb1.cui2snames, cdb2.cui2snames, progress=show_progress)
+    reg = DictComparisonResults.get(cdb1.cui2info, cdb2.cui2info, progress=show_progress)
+    snames = DictComparisonResults.get(cdb1.cui2info, cdb2.cui2info, progress=show_progress)
     return CDBCompareResults(names=reg, snames=snames)
