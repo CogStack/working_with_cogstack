@@ -1,3 +1,4 @@
+from medcat.cat import logger as cat_logger
 from medcat.cat import CAT
 import pandas as pd
 import os
@@ -44,10 +45,10 @@ output_modelpack = 'umls_self_train_model'  # Save name for new model
 # Load modelpack
 print('Loading modelpack')
 cat = CAT.load_model_pack(model_pack_path)
-cat.log.addHandler(logging.StreamHandler()) # add console output
+cat_logger.addHandler(logging.StreamHandler()) # add console output
 
 print('STATS:')
-cat.cdb.print_stats()
+print(cat.cdb.get_basic_info())
 
 # CHANGE AS NEEDED - if the number of spligt files is different
 all_data_files = [f'split_notes_5M_{nr}.csv' for nr in range(1, 20)]  # file containing training material.
@@ -55,14 +56,14 @@ for i, data_file in enumerate(all_data_files):
     # Load training data
     print('Load data for', i, 'from', data_file)
     data = pd.read_csv(os.path.join(data_dir, data_file))
-    cat.train(data.text.values, progress_print=100)
+    cat.trainer.train_unsupervised(data.text.values, progress_print=100)
 
     print('Stats now, after', i)
-    cat.cdb.print_stats()
+    print(cat.cdb.get_basic_info())
 
     # save modelpack
-    cat.create_model_pack(save_dir_path=model_dir, model_pack_name=f"{output_modelpack}_{i}")
+    cat.save_model_pack(save_dir_path=model_dir, model_pack_name=f"{output_modelpack}_{i}")
 
 # save modelpack - ALL
-cat.create_model_pack(save_dir_path=model_dir, model_pack_name=output_modelpack)
+cat.save_model_pack(save_dir_path=model_dir, model_pack_name=output_modelpack)
 

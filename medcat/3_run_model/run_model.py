@@ -59,7 +59,7 @@ if snomed_filter_path:
 else:
     snomed_filter = set(cat.cdb.cui2info.keys())
 
-cat.config.linking.filters.cuis = snomed_filter
+cat.config.components.linking.filters.cuis = snomed_filter
 del snomed_filter
 
 # build query, change as appropriate
