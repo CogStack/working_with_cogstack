@@ -62,8 +62,8 @@ for i, data_file in enumerate(all_data_files):
     print(cat.cdb.get_basic_info())
 
     # save modelpack
-    cat.save_model_pack(save_dir_path=model_dir, model_pack_name=f"{output_modelpack}_{i}")
+    cat.save_model_pack(target_folder=model_dir, pack_name=f"{output_modelpack}_{i}")
 
 # save modelpack - ALL
-cat.save_model_pack(save_dir_path=model_dir, model_pack_name=output_modelpack)
+cat.save_model_pack(target_folder=model_dir, pack_name=output_modelpack)
 

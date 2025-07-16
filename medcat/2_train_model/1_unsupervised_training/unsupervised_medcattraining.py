@@ -38,4 +38,4 @@ cat.trainer.train_unsupervised(
 
 print(cat.cdb.get_basic_info())
 
-cat.save_model_pack(save_dir_path=model_pack_path, model_pack_name=output_modelpack_name)
+cat.save_model_pack(target_folder=model_pack_path, pack_name=output_modelpack_name)
