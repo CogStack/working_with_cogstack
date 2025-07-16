@@ -147,9 +147,10 @@ class MedcatTrainer_export(object):
                                                            concept_count_df['variations'], 3)
         if self.cat:
             fps,fns,tps,cui_prec,cui_rec,cui_f1,cui_counts,examples = get_stats(self.cat,
-                                                                                data=self.mct_export,
+                                                                                data=self.mct_export, # type: ignore
                                                                                 use_project_filters=True,
-                                                                                extra_cui_filter=extra_cui_filter)
+                                                                                # extra_cui_filter=extra_cui_filter
+                                                                                )
             concept_count_df['fps'] = concept_count_df['cui'].map(fps)
             concept_count_df['fns'] = concept_count_df['cui'].map(fns)
             concept_count_df['tps'] = concept_count_df['cui'].map(tps)
@@ -262,11 +263,11 @@ class MedcatTrainer_export(object):
         return
 
     def _eval_model(self, model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
-        device = torch.device(config.general['device'])  # Create a torch device
-        batch_size_eval = config.general['batch_size_eval']
-        pad_id = config.model['padding_idx']
-        ignore_cpos = config.model['ignore_cpos']
-        class_weights = config.train['class_weights']
+        device = torch.device(config.general.device)  # Create a torch device
+        batch_size_eval = config.general.batch_size_eval
+        pad_id = config.model.padding_idx
+        ignore_cpos = config.model.ignore_cpos
+        class_weights = config.train.class_weights
 
         if class_weights is not None:
             class_weights = torch.FloatTensor(class_weights).to(device)
@@ -360,11 +361,11 @@ class MedcatTrainer_export(object):
                 #       and thus using it for loading is trivial
                 #       but here we need to manually load the config from disk
                 config_path = os.path.join(meta_model_path, "meta_cat", "config")
-                cnf: ConfigMetaCAT = deserialise(config_path)
+                cnf: ConfigMetaCAT = deserialise(config_path)  # type: ignore
                 _meta_model = MetaCATAddon.load_existing(
                     cnf, self.cat._pipeline._tokenizer, meta_model_path)
-            _meta_model = meta_cat.mc
-            meta_results = self._eval(_meta_model, self.mct_export)
+                meta_cat = _meta_model.mc
+            meta_results = self._eval(meta_cat, self.mct_export)
             _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
             pred_meta_values = []
             counter = 0
