@@ -396,7 +396,7 @@ class MedcatTrainer_export(object):
             for meta_task in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
-                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
+                meta_value_results: Dict[Tuple[str, str, str], Union[int, float]] = {}
                 meta_cats: list[MetaCATAddon] = [
                     addon for addon in
                     self.cat._pipeline.iter_addons()
