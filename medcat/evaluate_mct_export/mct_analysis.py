@@ -347,11 +347,11 @@ class MedcatTrainer_export(object):
                           & (anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
 
-        for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-            meta_model = meta_model_card['Category Name']
+        for meta_model_category in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            meta_model = meta_model_category
             print(f'Checking metacat model: {meta_model}')
             if self.is_legacy_model_pack:
-                meta_cat = get_meta_cat_from_old(
+                _meta_model = get_meta_cat_from_old(
                     self.model_pack_path + '/meta_' + meta_model, self.cat._pipeline._tokenizer)
             else:
                 meta_model_path = os.path.join(
@@ -364,7 +364,7 @@ class MedcatTrainer_export(object):
                 cnf: ConfigMetaCAT = deserialise(config_path)  # type: ignore
                 _meta_model = MetaCATAddon.load_existing(
                     cnf, self.cat._pipeline._tokenizer, meta_model_path)
-                meta_cat = _meta_model.mc
+            meta_cat = _meta_model.mc
             meta_results = self._eval(meta_cat, self.mct_export)
             _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
             pred_meta_values = []
@@ -393,12 +393,22 @@ class MedcatTrainer_export(object):
         for cui in meta_df.cui.unique():
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
-            for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-                meta_task = meta_model_card['Category Name']
+            for meta_task in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
                 meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
-                for meta_value in meta_model_card['Classes'].keys():
+                meta_cats: list[MetaCATAddon] = [
+                    addon for addon in
+                    self.cat._pipeline.iter_addons()
+                    if (isinstance(addon, MetaCATAddon) and
+                        addon.config.comp_name == meta_task)
+                ]
+                if len(meta_cats) != 1:
+                    raise ValueError(
+                        f"Unable to uniquely identify meta task {meta_task}. "
+                        f"Found {len(meta_cats)} options")
+                meta_cat = meta_cats[0]
+                for meta_value in meta_cat.config.general.category_value2id.keys():
                     total = 0
                     fp = 0
                     fn = 0
