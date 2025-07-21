@@ -11,3 +11,6 @@ data/cogstack_search_results/
 
 # Default environments
 venv
+
+# pythin cache folder
+__pycache__
