@@ -6,7 +6,6 @@ import elasticsearch.helpers as es_helpers
 from IPython.display import display, HTML
 import pandas as pd
 import tqdm
-#import eland as ed
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -37,29 +36,29 @@ class CogStack(object):
                     }
     """
     def __init__(self, hosts: List, username: Optional[str] = None, password: Optional[str] = None,
-                 apiKey: Dict = None):
+                 api_key: Dict = None):
         
-        if apiKey is not None:
-            encoded = apiKey["encoded"] if "encoded" in apiKey.keys() else  input("Encoded API key: ")
+        if api_key is not None:
+            encoded = api_key["encoded"] if "encoded" in api_key.keys() and api_key["encoded"] != '' else input("Encoded API key: ")
             hasEncodedValue = encoded is not None and encoded != ''
 
             if(not hasEncodedValue):
 
-                api_Id = apiKey["id"] if "id" in apiKey.keys() else input("API Id: ")
-                api_key = apiKey["api_key"] if "api_key" in apiKey.keys() else getpass.getpass("API Key: ")
+                api_Id = api_key["id"] if "id" in api_key.keys() and api_key["id"] != '' else input("API Id: ")
+                api_key = api_key["api_key"] if "api_key" in api_key.keys() and api_key["api_key"] != '' else getpass.getpass("API Key: ")
 
 
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key= encoded if hasEncodedValue else (api_Id, api_key),
                                                        verify_certs=False)
         else:
-            username, password = self._check_auth_details(username, password)
+            username, password = self.__check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        basic_auth=(username, password),
                                                        verify_certs=False)
             self.elastic._request_timeout = 300
-
-    def _check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
+    
+    def __check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
         """
         Prompt the user for a username and password if the values are not provided as function arguments.
         
@@ -139,7 +138,6 @@ class CogStack(object):
         with pd.option_context('display.max_rows', len(index_mappings_coll) + 1):
             return display(pd.DataFrame(data= index_mappings_coll, columns=columns))
 
-
     def count_search_results(self, index: str | Sequence[str], query: dict):
           """
            Count number of documents returned by the query
@@ -210,14 +208,13 @@ class CogStack(object):
             If the search fails or cancelled by the user.    
         """
         try:
-           
             self.__validate_size(size=size)
             if "query" not in query.keys():
                 temp_query =  query.copy()
                 query.clear()
                 query["query"] = temp_query
 
-            docs_generator = es_helpers.scan(self.elastic,
+            scan_results = es_helpers.scan(self.elastic,
                                              index=index,
                                              query=query,
                                              size=size,
@@ -226,7 +223,7 @@ class CogStack(object):
                                              fields = include_fields)
             all_mapped_results = []
             results = self.elastic.count(index=index, query=query["query"], request_timeout=request_timeout) 
-            pr_bar = tqdm.tqdm(docs_generator, total=results["count"], desc="CogStack retrieved...", disable=not show_progress, colour='green')
+            pr_bar = tqdm.tqdm(scan_results, total=results["count"], desc="CogStack retrieved...", disable=not show_progress, colour='green')
             all_mapped_results = self.__map_search_results(hits=pr_bar)
         except BaseException as err: 
             if(type(err) is KeyboardInterrupt):
@@ -240,7 +237,6 @@ class CogStack(object):
         finally:
            return self.__create_dataframe(all_mapped_results, include_fields)
         
-
     def read_data_with_scroll(self, 
                   index: str | Sequence[str], 
                   query: dict, 
@@ -300,11 +296,11 @@ class CogStack(object):
             query = self.__extract_query(query=query)
             result_count = size
             all_mapped_results =[]
-            resp=None
+            search_result=None
             pr_bar = tqdm.tqdm(desc="CogStack retrieved...", disable=not show_progress, colour='green') 
 
             if search_scroll_id is None:
-                resp = self.elastic.search(index=index, 
+                search_result = self.elastic.search(index=index, 
                                                size=size,
                                                query=query, 
                                                fields=include_fields, 
@@ -313,20 +309,20 @@ class CogStack(object):
                                                timeout=f"{request_timeout}s",
                                                rest_total_hits_as_int=True) 
                 
-                pr_bar.total = resp.body['hits']['total']
-                hits = resp.body['hits']['hits']
+                pr_bar.total = search_result.body['hits']['total']
+                hits = search_result.body['hits']['hits']
                 result_count = len(hits)
-                search_scroll_id = resp.body['_scroll_id']
+                search_scroll_id = search_result.body['_scroll_id']
                 all_mapped_results.extend(self.__map_search_results(hits=hits))
                 pr_bar.update(len(hits))
 
             while search_scroll_id and result_count == size:
                 # Perform ES scroll request
-                resp = self.elastic.scroll(scroll_id=search_scroll_id, scroll="10m", rest_total_hits_as_int=True)
-                hits = resp.body['hits']['hits']
-                pr_bar.total = pr_bar.total if pr_bar.total else resp.body['hits']['total']
+                search_result = self.elastic.scroll(scroll_id=search_scroll_id, scroll="10m", rest_total_hits_as_int=True)
+                hits = search_result.body['hits']['hits']
+                pr_bar.total = pr_bar.total if pr_bar.total else search_result.body['hits']['total']
                 all_mapped_results.extend(self.__map_search_results(hits=hits))
-                search_scroll_id = resp.body['_scroll_id']
+                search_scroll_id = search_result.body['_scroll_id']
                 result_count = len(hits)
                 pr_bar.update(result_count)
                 
@@ -344,7 +340,6 @@ class CogStack(object):
         finally:
             return self.__create_dataframe(all_mapped_results, include_fields)
 
-    
     def read_data_with_sorting(self, 
                                index: str | Sequence[str], 
                                query: dict, 
