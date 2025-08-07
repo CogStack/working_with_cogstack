@@ -20,12 +20,45 @@ class CogStack(object):
     ------------
         hosts : List[str]
             A list of Elasticsearch host URLs.
-        username : str, optional
+    """
+    def __init__(self, hosts: List[str]):
+        self.hosts = hosts
+
+    def use_basic_auth(self, username: Optional[str] = None, password:Optional[str] = None) -> 'CogStack':
+        """
+        Create an instance of CogStack using basic authentication.
+        If the `username` or `password` parameters are not provided, the user will be prompted to enter them.
+
+        Parameters
+        ----------
+        username : str, optional 
             The username to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a username.
-        password : str, optional
+        password : str, optional 
             The password to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a password.
+        
+        Returns
+        -------
+            CogStack: An instance of the CogStack class.
+        """
+        if username is None:
+            username = input("Username: ")
+        if password is None:
+            password = getpass.getpass("Password: ")
+
+        return self.__connect(basic_auth=(username, password) if username and password else None)
+    
+    def use_api_key_auth(self,  api_key: Optional[Dict] = None) -> 'CogStack':
+        """
+        Create an instance of CogStack using API key authentication.
+
+        Parameters
+        ----------
         apiKey : Dict, optional
+
             API key object with "id" and "api_key" or "encoded" strings as fields. Generated in Elasticseach or Kibana
+            and provided by your CogStack administrator.
+            
+            If not provided, the user will be prompted to enter API key "encoded" value.
             
             Example:  
              .. code-block:: json
@@ -34,52 +67,55 @@ class CogStack(object):
                         "api_key": "API_KEY",
                         "encoded": "API_KEY_ENCODED_STRING"
                     }
-    """
-    def __init__(self, hosts: List, username: Optional[str] = None, password: Optional[str] = None,
-                 api_key: Dict = None):
+        
+        Returns
+        -------
+            CogStack: An instance of the CogStack class.
+        """
+        if not api_key:
+            api_key = {"encoded": input("Encoded API key: ")}
         
         if api_key is not None:
-            encoded = api_key["encoded"] if "encoded" in api_key.keys() and api_key["encoded"] != '' else input("Encoded API key: ")
-            hasEncodedValue = encoded is not None and encoded != ''
+            if isinstance(api_key, str):
+                # If api_key is a string, it is assumed to be the encoded API key
+                encoded = api_key
+                hasEncodedValue = True
+            elif isinstance(api_key, Dict):
+                # If api_key is a dictionary, check for "encoded", "id" and "api_key" keys
+                encoded = api_key["encoded"] if "encoded" in api_key.keys() and api_key["encoded"] != '' else input("Encoded API key: ")
+                hasEncodedValue = encoded is not None and encoded != ''
 
             if(not hasEncodedValue):
-
                 api_Id = api_key["id"] if "id" in api_key.keys() and api_key["id"] != '' else input("API Id: ")
                 api_key = api_key["api_key"] if "api_key" in api_key.keys() and api_key["api_key"] != '' else getpass.getpass("API Key: ")
 
-
-            self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
-                                                       api_key= encoded if hasEncodedValue else (api_Id, api_key),
-                                                       verify_certs=False)
-        else:
-            username, password = self.__check_auth_details(username, password)
-            self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
-                                                       basic_auth=(username, password),
-                                                       verify_certs=False)
-            self.elastic._request_timeout = 300
+            return self.__connect(api_key=encoded if hasEncodedValue else (api_Id, api_key))
     
-    def __check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
-        """
-        Prompt the user for a username and password if the values are not provided as function arguments.
-        
+    def __connect(self, basic_auth : Optional[Tuple[str,str]] = None, api_key: Optional[str | Tuple[str, str]] = None) -> 'CogStack':
+        """ Connect to Elasticsearch using the provided credentials.
         Parameters
-        ------------
-            username : str, optional
-                The API username. If not provided, the user will be prompted to enter a username.
-            password : str, optional
-                The API password. If not provided, the user will be prompted to enter a password.
-        
-        Returns
         ----------
-            Tuple[str, str]: 
-                A tuple containing the API username and password.
+            basic_auth : Tuple[str, str], optional
+                A tuple containing the username and password for basic authentication.
+            api_key : str or Tuple[str, str], optional
+                The API key or a tuple containing the API key ID and API key for API key authentication.
+        Returns
+        -------
+            CogStack: An instance of the CogStack class.
+        Raises
+        ------
+            Exception: If the connection to Elasticsearch fails.
         """
-        if username is None:
-            username = input("Username: ")
-        if password is None:
-            password = getpass.getpass("Password: ")
-        return username, password
-  
+        self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
+                                                  api_key=api_key,
+                                                  basic_auth=basic_auth,
+                                                  verify_certs=False,
+                                                  request_timeout=300)
+        if not self.elastic.ping():
+            raise Exception("CogStack connection failed. Please check your host list and credentials and try again.") 
+        print("CogStack connection established successfully.")
+        return self
+    
     def get_indices_and_aliases(self):
         """
         Retrieve indices and their aliases
@@ -248,6 +284,7 @@ class CogStack(object):
             
         """
         Retrieves documents from an Elasticsearch index using search query and scroll API.
+        Default scroll timeout is set to 10 minutes.
         The function converts search results to a Pandas DataFrame.
         
         Parameters
