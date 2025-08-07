@@ -21,8 +21,62 @@ class CogStack(object):
         hosts : List[str]
             A list of Elasticsearch host URLs.
     """
+    ES_TIMEOUT = 300
+    
     def __init__(self, hosts: List[str]):
         self.hosts = hosts
+
+    @classmethod
+    def with_basic_auth(cls, hosts: List[str], username: Optional[str] = None, password: Optional[str] = None) -> 'CogStack':
+        """
+        Create an instance of CogStack using basic authentication.
+
+        Parameters
+        ----------
+        hosts : List[str]
+            A list of Elasticsearch host URLs.
+        username : str, optional
+            The username to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a username.
+        password : str, optional
+            The password to use when connecting to Elasticsearch. If not provided, the user will be prompted to enter a password.
+        Returns 
+        -------
+            CogStack: An instance of the CogStack class.
+        """
+        cs = cls(hosts)
+        cs.use_basic_auth(username, password)
+        return cs
+    
+    @classmethod
+    def with_api_key_auth(cls, hosts: List[str], api_key: Optional[Dict] = None) -> 'CogStack':
+        """
+        Create an instance of CogStack using API key authentication.
+
+        Parameters
+        ----------
+        hosts : List[str]
+            A list of Elasticsearch host URLs.
+        apiKey : Dict, optional
+
+            API key object with "id" and "api_key" or "encoded" strings as fields. Generated in Elasticseach or Kibana
+            and provided by your CogStack administrator.
+            
+            If not provided, the user will be prompted to enter API key "encoded" value.
+            
+            Example:  
+                .. code-block:: json
+                        {
+                            "id": "API_KEY_ID",
+                            "api_key": "API_KEY",
+                            "encoded": "API_KEY_ENCODED_STRING"
+                        }
+        Returns
+        -------
+            CogStack: An instance of the CogStack class.
+        """
+        cs = cls(hosts)
+        cs.use_api_key_auth(api_key)
+        return cs
 
     def use_basic_auth(self, username: Optional[str] = None, password:Optional[str] = None) -> 'CogStack':
         """
@@ -55,7 +109,7 @@ class CogStack(object):
         ----------
         apiKey : Dict, optional
 
-            API key object with "id" and "api_key" or "encoded" strings as fields. Generated in Elasticseach or Kibana
+            API key object with "id" and "api_key" or "encoded" strings as fields. Generated in Elasticsearch or Kibana
             and provided by your CogStack administrator.
             
             If not provided, the user will be prompted to enter API key "encoded" value.
@@ -82,8 +136,14 @@ class CogStack(object):
                 hasEncodedValue = True
             elif isinstance(api_key, Dict):
                 # If api_key is a dictionary, check for "encoded", "id" and "api_key" keys
-                encoded = api_key["encoded"] if "encoded" in api_key.keys() and api_key["encoded"] != '' else input("Encoded API key: ")
-                hasEncodedValue = encoded is not None and encoded != ''
+                if "id" in api_key.keys() and api_key["id"] != '' and "api_key" in api_key.keys() and api_key["api_key"] != '':
+                # If both "id" and "api_key" are present, use them
+                    encoded = None
+                    hasEncodedValue = False
+                else:
+                    # If "encoded" is present, use it; otherwise prompt for it
+                    encoded = api_key["encoded"] if "encoded" in api_key.keys() and api_key["encoded"] != '' else input("Encoded API key: ")
+                    hasEncodedValue = encoded is not None and encoded != ''
 
             if(not hasEncodedValue):
                 api_Id = api_key["id"] if "id" in api_key.keys() and api_key["id"] != '' else input("API Id: ")
@@ -110,7 +170,7 @@ class CogStack(object):
                                                   api_key=api_key,
                                                   basic_auth=basic_auth,
                                                   verify_certs=False,
-                                                  request_timeout=300)
+                                                  request_timeout=self.ES_TIMEOUT)
         if not self.elastic.ping():
             raise Exception("CogStack connection failed. Please check your host list and credentials and try again.") 
         print("CogStack connection established successfully.")
@@ -202,7 +262,7 @@ class CogStack(object):
                             query: dict, 
                             include_fields: list[str]=None, 
                             size: int=1000, 
-                            request_timeout: int=300,
+                            request_timeout: int=ES_TIMEOUT,
                             show_progress: bool = True):
         """
         Retrieve documents from an Elasticsearch index using search query and elasticsearch scan helper function.
@@ -279,7 +339,7 @@ class CogStack(object):
                   include_fields:Optional[list[str]]=None, 
                   size: int=1000, 
                   search_scroll_id: Optional[str] = None,
-                  request_timeout: Optional[int]=300,
+                  request_timeout: Optional[int]=ES_TIMEOUT,
                   show_progress: Optional[bool] = True):
             
         """
@@ -384,7 +444,7 @@ class CogStack(object):
                                size: Optional[int]=1000, 
                                sort: Optional[dict|list[str]] = {"id": "asc"},
                                search_after: Optional[list[str|int|float|Any|None]] = None,
-                               request_timeout: Optional[int]=300,
+                               request_timeout: Optional[int]=ES_TIMEOUT,
                                show_progress: Optional[bool] = True):
         """
         Retrieve documents from an Elasticsearch index using search query and convert them to a Pandas DataFrame.
