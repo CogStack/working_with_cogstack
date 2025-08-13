@@ -119,7 +119,7 @@ class CogStack(object):
                                                     size=es_gen_size,
                                                     request_timeout=request_timeout)
         temp_results = []
-        results = self.elastic.count(index=index, query=query['query'], request_timeout=300)  # type: ignore
+        results = self.elastic.count(index=index, query=query['query'])  # type: ignore
         for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved...", disable=not show_progress):
             row = dict()
             row['_index'] = hit['_index']
