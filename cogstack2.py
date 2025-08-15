@@ -353,7 +353,8 @@ class CogStack():
                 temp_query =  query.copy()
                 query.clear()
                 query["query"] = temp_query
-            pr_bar: tqdm.tqdm = None
+            pr_bar = tqdm.tqdm(desc="CogStack retrieved...",
+                               disable=not show_progress, colour='green')
 
             scan_results = es_helpers.scan(self.elastic,
                                              index=index,
@@ -364,10 +365,8 @@ class CogStack():
                                              fields = include_fields,
                                              allow_no_indices=False,)
             all_mapped_results = []
-            results = self.elastic.count(index=index, query=query["query"]) 
-            pr_bar = tqdm.tqdm(scan_results, total=results["count"],
-                               desc="CogStack retrieved...",
-                               disable=not show_progress, colour='green')
+            pr_bar.iterable = scan_results
+            pr_bar.total = self.elastic.count(index=index, query=query["query"])["count"]
             all_mapped_results = self.__map_search_results(hits=pr_bar)
         except BaseException as err: 
             if isinstance(err, KeyboardInterrupt):
