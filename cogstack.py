@@ -1,3 +1,4 @@
+
 import getpass
 from typing import Dict, List, Any, Optional, Iterable, Tuple
 import elasticsearch
@@ -6,13 +7,23 @@ import pandas as pd
 from tqdm.notebook import tqdm
 import eland as ed
 
+# Suppress warnings related to security in Elasticsearch
+# This is necessary to avoid warnings about insecure connections when using self-signed certificates or HTTP connections
 import warnings
-warnings.filterwarnings("ignore")
+from elastic_transport import SecurityWarning
+from urllib3.exceptions import InsecureRequestWarning
+
+# Reset all filters
+warnings.resetwarnings()
+
+warnings.filterwarnings("module", category=DeprecationWarning, module="cogstack")
+warnings.filterwarnings('ignore', category=SecurityWarning)
+warnings.filterwarnings('ignore', category=InsecureRequestWarning)
 
 from credentials import *
 
-
 class CogStack(object):
+    warnings.warn("cogstack module is deprecated, use cogstack2 instead.", DeprecationWarning)
     """
     A class for interacting with Elasticsearch.
     
@@ -31,7 +42,7 @@ class CogStack(object):
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key=api_key,
                                                        verify_certs=False,
-                                                       timeout=timeout)
+                                                       request_timeout=timeout)
         
         
         elif api:
@@ -39,14 +50,14 @@ class CogStack(object):
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        api_key=(api_username, api_password),
                                                        verify_certs=False,
-                                                       timeout=timeout)
+                                                       request_timeout=timeout)
             
         else:
             username, password = self._check_auth_details(username, password)
             self.elastic = elasticsearch.Elasticsearch(hosts=hosts,
                                                        basic_auth=(username, password),
                                                        verify_certs=False,
-                                                       timeout=timeout)
+                                                       request_timeout=timeout)
 
 
     def _check_auth_details(self, username=None, password=None) -> Tuple[str, str]:
@@ -108,7 +119,7 @@ class CogStack(object):
                                                     size=es_gen_size,
                                                     request_timeout=request_timeout)
         temp_results = []
-        results = self.elastic.count(index=index, query=query['query'], request_timeout=300)  # type: ignore
+        results = self.elastic.count(index=index, query=query['query'])  # type: ignore
         for hit in tqdm(docs_generator, total=results['count'], desc="CogStack retrieved...", disable=not show_progress):
             row = dict()
             row['_index'] = hit['_index']
@@ -155,4 +166,3 @@ def list_chunker(user_list: List[Any], n: int) -> List[List[Any]]:
 
 def _no_progress_bar(iterable: Iterable, **kwargs):
     return iterable
-
