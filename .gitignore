@@ -11,3 +11,6 @@ data/cogstack_search_results/
 
 # Default environments
 venv
+
+# python cache folder
+__pycache__
