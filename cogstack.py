@@ -143,7 +143,6 @@ class CogStack(object):
         }
         results = self.elastic.search(index=index, body=count_query, request_timeout=300)
         total_count = results['hits']['total']['value'] if isinstance(results['hits']['total'], dict) else results['hits']['total']
-        results = self.elastic.count(index=index, query=query['query'], request_timeout=300)  # type: ignore
         for hit in tqdm(docs_generator, total=total_count, desc="CogStack retrieved...", disable=not show_progress):
             row = dict()
             row['_index'] = hit['_index']
