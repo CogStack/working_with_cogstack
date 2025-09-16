@@ -1,13 +1,18 @@
+
 import getpass
 from typing import Dict, List, Any, Optional, Iterable, Tuple
 import pandas as pd
 from tqdm.notebook import tqdm
 import eland as ed
 
+# Suppress warnings related to security in Elasticsearch
+# This is necessary to avoid warnings about insecure connections when using self-signed certificates or HTTP connections
 import warnings
-warnings.filterwarnings("ignore")
+from elastic_transport import SecurityWarning
+from urllib3.exceptions import InsecureRequestWarning
 
-from credentials import *
+# Reset all filters
+warnings.resetwarnings()
 
 # Import search engine clients
 try:
@@ -25,7 +30,14 @@ except ImportError:
     OPENSEARCH_AVAILABLE = False
 
 
+warnings.filterwarnings("module", category=DeprecationWarning, module="cogstack")
+warnings.filterwarnings('ignore', category=SecurityWarning)
+warnings.filterwarnings('ignore', category=InsecureRequestWarning)
+
+from credentials import *
+
 class CogStack(object):
+    warnings.warn("cogstack module is deprecated, use cogstack2 instead.", DeprecationWarning)
     """
     A class for interacting with Elasticsearch or OpenSearch.
 
@@ -189,4 +201,3 @@ def list_chunker(user_list: List[Any], n: int) -> List[List[Any]]:
 
 def _no_progress_bar(iterable: Iterable, **kwargs):
     return iterable
-
