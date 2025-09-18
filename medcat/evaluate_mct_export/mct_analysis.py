@@ -347,8 +347,8 @@ class MedcatTrainer_export(object):
                           & (anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
 
-        for meta_model_category in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-            meta_model = meta_model_category
+        for meta_model_info in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            meta_model = meta_model_info['Category Name']
             print(f'Checking metacat model: {meta_model}')
             if self.is_legacy_model_pack:
                 _meta_model = get_meta_cat_from_old(
@@ -393,7 +393,8 @@ class MedcatTrainer_export(object):
         for cui in meta_df.cui.unique():
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
-            for meta_task in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            for meta_task_info in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+                meta_task = meta_task_info['Category Name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
                 meta_value_results: Dict[Tuple[str, str, str], Union[int, float]] = {}
