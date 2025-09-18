@@ -28,13 +28,14 @@ cs = CogStack(hosts, username=username, password=password, api=True)
 df = cs.DataFrame(index=cogstack_indices, columns=text_columns)  # type: ignore
 
 cat = CAT.load_model_pack(model_pack_path+model_pack_name)
-cat.cdb.print_stats()
-cat.train(data_iterator=df[text_columns].iterrows(),
-          nepochs=1,
-          fine_tune=True,
-          progress_print=10000,
-          is_resumed=False)
+print(cat.cdb.get_basic_info())
+cat.trainer.train_unsupervised(
+    data_iterator=df[text_columns].iterrows(),
+    nepochs=1,
+    fine_tune=True,
+    progress_print=10000,
+    is_resumed=False)
 
-cat.cdb.print_stats()
+print(cat.cdb.get_basic_info())
 
-cat.create_model_pack(save_dir_path=model_pack_path, model_pack_name=output_modelpack_name)
+cat.save_model_pack(target_folder=model_pack_path, pack_name=output_modelpack_name)

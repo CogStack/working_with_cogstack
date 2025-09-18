@@ -1,7 +1,9 @@
 import os
 import sys
+import shutil
 
 import medcat.vocab
+from medcat.storage.serialisers import deserialise
 
 _FILE_DIR = os.path.dirname(__file__)
 
@@ -40,16 +42,19 @@ class CreateVocabTest(unittest.TestCase):
 
     def setUp(self) -> None:
         if os.path.exists(VOCAB_OUTPUT_PATH):
-            os.rename(VOCAB_OUTPUT_PATH, self.temp_vocab_path)
+            # NOTE: this is a folder in v2
+            shutil.move(VOCAB_OUTPUT_PATH, self.temp_vocab_path)
             self.moved = True
         else:
             self.moved = False
 
     def tearDown(self) -> None:
         if os.path.exists(VOCAB_OUTPUT_PATH):
-            os.remove(VOCAB_OUTPUT_PATH)
+            # NOTE: this is a folder in v2
+            shutil.rmtree(VOCAB_OUTPUT_PATH)
         if self.moved:
-            os.rename(self.temp_vocab_path, VOCAB_OUTPUT_PATH)
+            # NOTE: this is a folder in v2
+            shutil.move(self.temp_vocab_path, VOCAB_OUTPUT_PATH)
 
     def test_creating_vocab(self):
         with patch('builtins.open', side_effect=custom_open):
@@ -57,5 +62,5 @@ class CreateVocabTest(unittest.TestCase):
         vocab_path = os.path.join(create_vocab.vocab_dir, "vocab.dat")
         self.assertEqual(os.path.abspath(vocab_path), VOCAB_OUTPUT_PATH)
         self.assertTrue(os.path.exists(vocab_path))
-        vocab = medcat.vocab.Vocab.load(vocab_path)
+        vocab: medcat.vocab.Vocab = deserialise(vocab_path)
         self.assertIsInstance(vocab, medcat.vocab.Vocab)

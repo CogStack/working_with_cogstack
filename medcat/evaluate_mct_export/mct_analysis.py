@@ -2,7 +2,9 @@ import plotly
 import plotly.graph_objects as go
 from medcat.cat import CAT
 from datetime import date
+from typing import cast
 
+import os
 import json
 import torch
 import math
@@ -11,13 +13,17 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 from typing import List, Dict, Iterator, Tuple, Optional, Union
-from medcat.tokenizers.meta_cat_tokenizers import TokenizerWrapperBase
+from medcat.components.addons.meta_cat.mctokenizers.tokenizers import TokenizerWrapperBase
 
-from medcat.utils.meta_cat.ml_utils import create_batch_piped_data
+from medcat.components.addons.meta_cat.ml_utils import create_batch_piped_data
 
-from medcat.meta_cat import MetaCAT
-from medcat.config_meta_cat import ConfigMetaCAT
-from medcat.utils.meta_cat.data_utils import prepare_from_json, encode_category_values
+from medcat.components.addons.meta_cat.meta_cat import MetaCATAddon, MetaCAT
+from medcat.stats.stats import get_stats
+from medcat.utils.legacy.identifier import is_legacy_model_pack
+from medcat.utils.legacy.convert_meta_cat import get_meta_cat_from_old
+from medcat.config.config_meta_cat import ConfigMetaCAT
+from medcat.components.addons.meta_cat.data_utils import prepare_from_json, encode_category_values
+from medcat.storage.serialisers import deserialise
 import warnings
 
 
@@ -35,8 +41,11 @@ class MedcatTrainer_export(object):
         :param model_pack_path: Path to medcat modelpack
         """
         self.cat: Optional[CAT] = None
+        self.is_legacy_model_pack = False
         if model_pack_path:
             self.cat = CAT.load_model_pack(model_pack_path)
+            mpp = model_pack_path.removesuffix(".zip")
+            self.is_legacy_model_pack = is_legacy_model_pack(mpp)
         self.mct_export_paths = mct_export_paths
         self.mct_export = self._load_mct_exports(self.mct_export_paths)
         self.project_names: List[str] = []
@@ -103,7 +112,7 @@ class MedcatTrainer_export(object):
         """
         annotation_df = pd.DataFrame(self.annotations)
         if self.cat:
-            annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(self.cat.cdb.cui2preferred_name))
+            annotation_df.insert(5, 'concept_name', annotation_df['cui'].map(lambda cui: cast(CAT, self.cat).cdb.get_name(cui)))
         exceptions: List[ValueError] = []
         # try the default format as well as the format specified above
         for format in [None, DATETIME_FORMAT]:
@@ -137,9 +146,11 @@ class MedcatTrainer_export(object):
         concept_count_df['count_variations_ratio'] = round(concept_count_df['concept_count'] /
                                                            concept_count_df['variations'], 3)
         if self.cat:
-            fps,fns,tps,cui_prec,cui_rec,cui_f1,cui_counts,examples = self.cat._print_stats(data=self.mct_export,
-                                                                                            use_project_filters=True,
-                                                                                            extra_cui_filter=extra_cui_filter)
+            fps,fns,tps,cui_prec,cui_rec,cui_f1,cui_counts,examples = get_stats(self.cat,
+                                                                                data=self.mct_export, # type: ignore
+                                                                                use_project_filters=True,
+                                                                                # extra_cui_filter=extra_cui_filter
+                                                                                )
             concept_count_df['fps'] = concept_count_df['cui'].map(fps)
             concept_count_df['fns'] = concept_count_df['cui'].map(fns)
             concept_count_df['tps'] = concept_count_df['cui'].map(tps)
@@ -252,11 +263,11 @@ class MedcatTrainer_export(object):
         return
 
     def _eval_model(self, model: nn.Module, data: List, config: ConfigMetaCAT, tokenizer: TokenizerWrapperBase) -> Dict:
-        device = torch.device(config.general['device'])  # Create a torch device
-        batch_size_eval = config.general['batch_size_eval']
-        pad_id = config.model['padding_idx']
-        ignore_cpos = config.model['ignore_cpos']
-        class_weights = config.train['class_weights']
+        device = torch.device(config.general.device)  # Create a torch device
+        batch_size_eval = config.general.batch_size_eval
+        pad_id = config.model.padding_idx
+        ignore_cpos = config.model.ignore_cpos
+        class_weights = config.train.class_weights
 
         if class_weights is not None:
             class_weights = torch.FloatTensor(class_weights).to(device)
@@ -336,11 +347,25 @@ class MedcatTrainer_export(object):
                           & (anns_df['irrelevant'] != True)]
         meta_df = meta_df.reset_index(drop=True)
 
-        for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-            meta_model = meta_model_card['Category Name']
+        for meta_model_info in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+            meta_model = meta_model_info['Category Name']
             print(f'Checking metacat model: {meta_model}')
-            _meta_model = MetaCAT.load(self.model_pack_path + '/meta_' + meta_model)
-            meta_results = self._eval(_meta_model, self.mct_export)
+            if self.is_legacy_model_pack:
+                _meta_model = get_meta_cat_from_old(
+                    self.model_pack_path + '/meta_' + meta_model, self.cat._pipeline._tokenizer)
+            else:
+                meta_model_path = os.path.join(
+                    self.model_pack_path, "saved_components", f"addon_meta_cat.{meta_model}")
+                # NOTE: the expected workflow when loading the model
+                #       is one where the config is stored as part of the overall config
+                #       and thus using it for loading is trivial
+                #       but here we need to manually load the config from disk
+                config_path = os.path.join(meta_model_path, "meta_cat", "config")
+                cnf: ConfigMetaCAT = deserialise(config_path)  # type: ignore
+                _meta_model = MetaCATAddon.load_existing(
+                    cnf, self.cat._pipeline._tokenizer, meta_model_path)
+            meta_cat = _meta_model.mc
+            meta_results = self._eval(meta_cat, self.mct_export)
             _meta_values = {v: k for k, v in meta_results['meta_values'].items()}
             pred_meta_values = []
             counter = 0
@@ -368,12 +393,24 @@ class MedcatTrainer_export(object):
         for cui in meta_df.cui.unique():
             temp_meta_df = meta_df[meta_df['cui'] == cui]
             meta_task_results = {}
-            for meta_model_card in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
-                meta_task = meta_model_card['Category Name']
+            for meta_task_info in self.cat.get_model_card(as_dict=True)['MetaCAT models']:
+                meta_task = meta_task_info['Category Name']
                 list_meta_anns = list(zip(temp_meta_df[meta_task], temp_meta_df['predict_' + meta_task]))
                 counter_meta_anns = Counter(list_meta_anns)
-                meta_value_results: Dict[Tuple[Dict, str, str], Union[int, float]] = {}
-                for meta_value in meta_model_card['Classes'].keys():
+                meta_value_results: Dict[Tuple[str, str, str], Union[int, float]] = {}
+                # TODO: maybe make this easier?
+                meta_cats: list[MetaCATAddon] = [
+                    addon for addon in
+                    self.cat._pipeline.iter_addons()
+                    if (isinstance(addon, MetaCATAddon) and
+                        addon.config.comp_name == meta_task)
+                ]
+                if len(meta_cats) != 1:
+                    raise ValueError(
+                        f"Unable to uniquely identify meta task {meta_task}. "
+                        f"Found {len(meta_cats)} options")
+                meta_cat = meta_cats[0]
+                for meta_value in meta_cat.config.general.category_value2id.keys():
                     total = 0
                     fp = 0
                     fn = 0
@@ -409,7 +446,7 @@ class MedcatTrainer_export(object):
         meta_anns_df['total_anns'] = meta_anns_df[col_lst].sum(axis=1)
         meta_anns_df = meta_anns_df.sort_values(by='total_anns', ascending=False)
         meta_anns_df = meta_anns_df.rename_axis('cui').reset_index(drop=False)
-        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(self.cat.cdb.cui2preferred_name))
+        meta_anns_df.insert(1, 'concept_name', meta_anns_df['cui'].map(lambda cui: cast(CAT, self.cat).cdb.get_name(cui)))
         return meta_anns_df
 
     def generate_report(self, path: str = 'mct_report.xlsx', meta_ann=False, concept_filter: Optional[List] = None):

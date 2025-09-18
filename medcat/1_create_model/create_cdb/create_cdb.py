@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 from medcat.config import Config
-from medcat.cdb_maker import CDBMaker
+from medcat.model_creation.cdb_maker import CDBMaker
+from medcat.storage.serialisers import serialise, AvailableSerialisers
 
 pd.options.mode.chained_assignment = None  # type: ignore
 
@@ -24,6 +25,10 @@ csv_path = os.path.join(EXPECTED_CSV_PATH, csv_path)
 
 model_dir = os.path.join(BASE_PATH, "models", "cdb")
 output_cdb = os.path.join(model_dir, f"{release}_SNOMED_cdb.dat")
+os.makedirs(output_cdb, exist_ok=True)
+# NOTE: by default, new models creaeted at the same location will not be saved
+#       so here we allow overwrtiing
+allow_overwrite = True
 csv = pd.read_csv(csv_path)
 
 # Remove null values
@@ -50,9 +55,9 @@ csv.pop('acronym')
 
 # Setup config
 config = Config()
-config.general['spacy_model'] = 'en_core_web_md'
-config.cdb_maker['remove_parenthesis'] = 1
-config.general['cdb_source_name'] = f'SNOMED_{release}'
+config.general.nlp.modelname = 'en_core_web_md'
+config.cdb_maker.remove_parenthesis = 1
+# config.general.cdb_source_name = f'SNOMED_{release}'
 
 maker = CDBMaker(config)
 
@@ -64,8 +69,8 @@ cdb = maker.prepare_csvs(csv_paths, full_build=True)
 
 # Add type_id pretty names to cdb
 cdb.addl_info['type_id2name'] = pd.Series(csv.description_type_ids.values, index=csv.type_ids.astype(str)).to_dict()
-cdb.config.linking['filters']['cuis'] = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
+cdb.config.components.linking.filters.cuis = set(csv['cui'].tolist())  # Add all cuis to filter out legacy terms.
 
 # save model
-cdb.save(output_cdb)
+serialise(AvailableSerialisers.dill, cdb, output_cdb, overwrite=allow_overwrite)
 print(f"CDB Model saved successfully as: {output_cdb}")
